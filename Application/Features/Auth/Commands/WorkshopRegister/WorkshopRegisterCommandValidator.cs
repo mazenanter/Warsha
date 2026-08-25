@@ -15,7 +15,9 @@ namespace Application.Features.Auth.Commands.WorkshopRegister
             RuleFor(x => x.Name)
                .NotEmpty().WithMessage("Workshop name is required.")
                .MaximumLength(100);
-
+            RuleFor(x => x.Email)
+               .NotEmpty()
+               .EmailAddress().WithMessage("Invalid email address");
             RuleFor(x => x.Phone)
                 .NotEmpty().WithMessage("Phone is required.")
                 .Matches(@"^01[0125][0-9]{8}$")

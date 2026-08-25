@@ -22,7 +22,7 @@ namespace Application.Features.Auth.Commands.WorkshopRegister
                 Phone = request.Phone,
                 Address = request.Address,
                 Password = request.Password,
-         
+         Email = request.Email,
                 
             };
 

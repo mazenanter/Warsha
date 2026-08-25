@@ -19,7 +19,7 @@ namespace Application.Features.Auth.Commands.WorkshopLogin
             var workshopLoginRequest = new WorkshopLoginRequest
             {
                 Password = request.Password,
-                UserName = request.UserName
+                Email = request.Email
             };
             return await _authService.WorkshopLoginAsync(workshopLoginRequest);
         }

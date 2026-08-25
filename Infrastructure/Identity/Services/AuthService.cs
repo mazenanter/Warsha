@@ -264,10 +264,10 @@ namespace Infrastructure.Identity.Services
 
         public async Task<Result<AuthResult>> WorkshopLoginAsync(WorkshopLoginRequest workshopLoginRequest)
         {
-            var workshop = await _userManager.FindByNameAsync(workshopLoginRequest.UserName);
+            var workshop = await _userManager.FindByEmailAsync(workshopLoginRequest.Email);
             if(workshop == null || !await _userManager.CheckPasswordAsync(workshop, workshopLoginRequest.Password))
             {
-                return Result<AuthResult>.Failure("Invalid username or password");
+                return Result<AuthResult>.Failure("Invalid email or password");
             }
             if(!workshop.IsActive)
             {
@@ -279,7 +279,7 @@ namespace Infrastructure.Identity.Services
                 return Result<AuthResult>.Failure("Your account is not verified yet. Please contact support.");
             }
             var roles = await _userManager.GetRolesAsync(workshop);
-            var token = _jwtService.GenerateAccessToken(workshop.Id, workshopLoginRequest.UserName, roles,workshopId: workshopEntity.Id);
+            var token = _jwtService.GenerateAccessToken(workshop.Id, workshopLoginRequest.Email, roles,workshopId: workshopEntity.Id);
             workshop.RefreshTokens ??= new List<RefreshToken>();
             var activeRefreshToken = workshop.RefreshTokens.FirstOrDefault(i => i.IsActive);
             var authResult = new AuthResult();
@@ -295,7 +295,7 @@ namespace Infrastructure.Identity.Services
                 authResult.RefreshToken = refreshToken.Token;
             }
             authResult.AccessToken = token;
-            authResult.Email = workshopLoginRequest.UserName;
+            authResult.Email = workshopLoginRequest.Email;
             authResult.UserId = workshop.Id;
             authResult.ExpiresAt = DateTime.UtcNow.AddHours(12);
             await _userManager.UpdateAsync(workshop);
@@ -307,8 +307,15 @@ namespace Infrastructure.Identity.Services
             var userName = string.Concat(
     registerRequest.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
 ).ToLower();
-            var workshop = await _userManager.FindByNameAsync(userName);
+            var workshop = await _userManager.FindByEmailAsync(registerRequest.Email);
             if(workshop is not null)
+            {
+                return Result<AuthResult>.Failure("Workshop email already exists");
+
+            }
+            var nameExist = await _userManager.FindByNameAsync(userName);
+
+            if (nameExist is not null)
             {
                 return Result<AuthResult>.Failure("Workshop name already exists");
             }
@@ -316,6 +323,7 @@ namespace Infrastructure.Identity.Services
             var appUser = new ApplicationUser
             {
                 UserName = userName,
+                Email = registerRequest.Email,
                 UserType = UserType.WORKSHOP,
                 PhoneNumber = registerRequest.Phone,
                 EmailConfirmed = true,
@@ -346,7 +354,7 @@ namespace Infrastructure.Identity.Services
         //    {
         //        throw new ValidationException("Closing time format is invalid.");
         //    }
-            var newWorkshop = Workshop.Create(appUser.Id, registerRequest.Name, registerRequest.Phone, registerRequest.Address);
+            var newWorkshop = Workshop.Create(appUser.Id,registerRequest.Email, registerRequest.Name, registerRequest.Phone, registerRequest.Address);
             await _unitOfWork.Workshops.AddAsync(newWorkshop);
             await _unitOfWork.SaveChangesAsync();
             var authResult = new AuthResult

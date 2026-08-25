@@ -6,6 +6,7 @@ namespace Domain.Entities
     {
         public int UserId { get; private set; }
         public string Name { get; private set; } = default!;
+        public string Email { get; private set; } = default!;
         public string Phone { get; private set; } = default!;
         public string Address { get; private set; } = default!;
         public double Lat { get; private set; } 
@@ -20,29 +21,31 @@ namespace Domain.Entities
         private readonly List<WorkshopSpecialization> _specializations = [];
         public IReadOnlyCollection<WorkshopSpecialization> Specializations => _specializations;
         public bool EmailDailySummary { get; private set; } = true;
-        public string GoogleMapsLink { get; private set; } = default!;
+        public string? GoogleMapsLink { get; private set; } = null;
         public TimeOnly OpeningTime { get; private set; } = new TimeOnly(8,0);
         public TimeOnly ClosingTime { get; private set; } = new TimeOnly(8, 0);
 
 
         protected Workshop() { }
 
-        public static Workshop Create(int userId, string name, string phone, string address)
+        public static Workshop Create(int userId,string email, string name, string phone, string address)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new DomainException("Workshop name cannot be empty.");
+            if (string.IsNullOrWhiteSpace(email))
+                throw new DomainException("Workshop email cannot be empty.");
             if (string.IsNullOrWhiteSpace(phone))
                 throw new DomainException("Workshop phone cannot be empty.");
             if (string.IsNullOrWhiteSpace(address))
                 throw new DomainException("Workshop address cannot be empty.");
-           
+
             return new Workshop
             {
                 UserId = userId,
                 Name = name,
                 Phone = phone,
                 Address = address,
-           
+                Email = email,
                 RatingAvg = 0,
 
             };

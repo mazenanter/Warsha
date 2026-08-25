@@ -77,6 +77,17 @@ namespace WebApi.Controllers.Api.V1
             var result = await Mediator.Send(command);
             return HandleGenericResult(result);
         }
-
+        [HttpPost("workshop/forgot-password")]
+        public async Task<IActionResult> ForgotPasswordWorkshop(ForgotPasswordCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return HandleGenericResult(result);
+        }
+        [HttpPost("workshop/reset-password")]
+        public async Task<IActionResult> ResetPasswordWorkshop(ResetPasswordCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
+        }
     }
 }
