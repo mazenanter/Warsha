@@ -11,6 +11,7 @@ namespace Application.Interfaces
         public IRepository<WorkshopService> WorkshopServices { get;}
         public IRepository<ServiceCategory> ServiceCategories { get;}
         public IRepository<Specialization> Specializations { get;}
+        public IPermissionRepository Permissions { get; }
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
     }

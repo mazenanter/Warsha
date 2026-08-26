@@ -13,6 +13,10 @@ namespace Domain.Entities
         public string Module { get; private set; } = default!;
 
         public bool IsActive { get; private set; } = true;
+        private readonly List<UserPermission> _userPermissions = [];
+        private readonly List<RolePermission> _rolePermissions = [];
+        public IReadOnlyCollection<UserPermission> UserPermissions => _userPermissions;
+        public IReadOnlyCollection<RolePermission> RolePermissions => _rolePermissions;
 
         protected Permission() { }
         public static Permission Create(

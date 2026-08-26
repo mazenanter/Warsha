@@ -6,7 +6,7 @@
         public int RoleId { get; private set; }
 
         public int PermissionId { get; private set; }
-
+        public Permission Permission { get;private set; }
         protected RolePermission() { }
 
         public static RolePermission Create(int roleId, int permissionId) 

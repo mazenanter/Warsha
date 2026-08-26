@@ -405,5 +405,68 @@ namespace Infrastructure.Identity.Services
 
             return Result.Success("Password reset successfully");
         }
+
+        public async Task<Result<AuthResult>> AdminLoginAsync(AdminLoginRequest adminLoginRequest)
+        {
+            var user = await _userManager.FindByEmailAsync(adminLoginRequest.Email);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, adminLoginRequest.Password))
+                return Result<AuthResult>.Failure("Invalid email or password");
+
+            var allowedTypes = new[]
+            {
+        UserType.SUPERADMIN,
+        UserType.ADMIN,
+        UserType.EMPLOYEE
+    };
+
+            if (!allowedTypes.Contains(user.UserType))
+                return Result<AuthResult>.Failure("Access denied");
+
+            if (!user.IsActive)
+                return Result<AuthResult>.Failure("Your account is not active. Please contact support.");
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+      
+            IList<string> permissions = [];
+            if (user.UserType != UserType.SUPERADMIN)
+            {
+                var userPermissions = await _unitOfWork.Permissions
+                    .GetUserPermissionNamesAsync(user.Id);
+                permissions = userPermissions.ToList();
+            }
+
+            var accessToken = _jwtService.GenerateAccessToken(
+                user.Id,
+                user.Email!,
+                roles,
+                permissions: permissions);
+
+            user.RefreshTokens ??= [];
+            var activeRefreshToken = user.RefreshTokens.FirstOrDefault(t => t.IsActive);
+
+            string refreshTokenValue;
+            if (activeRefreshToken != null)
+            {
+                refreshTokenValue = activeRefreshToken.Token;
+            }
+            else
+            {
+                var newRefreshToken = _jwtService.GenerateRefreshToken();
+                user.RefreshTokens.Add(newRefreshToken);
+                refreshTokenValue = newRefreshToken.Token;
+            }
+
+            await _userManager.UpdateAsync(user);
+
+            return Result<AuthResult>.Success(new AuthResult
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                AccessToken = accessToken,
+                RefreshToken = refreshTokenValue,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+            }, "Login successful");
+        }
     }
 }

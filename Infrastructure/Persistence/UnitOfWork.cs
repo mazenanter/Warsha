@@ -17,6 +17,7 @@ namespace Infrastructure.Persistence
             ServiceCategories = new Repository<ServiceCategory>(_context);
             Specializations = new Repository<Specialization>(_context);
             Workshops = new WorkshopRepository(_context);
+            Permissions = new PermissionRepository(_context);
 
         }
         public IRepository<Client> Clients { get; }
@@ -24,6 +25,7 @@ namespace Infrastructure.Persistence
         public IRepository<ServiceCategory> ServiceCategories { get; }
         public IRepository<Specialization> Specializations { get; }
         public IWorkshopRepository Workshops { get; }
+        public IPermissionRepository Permissions { get; }
 
 
 

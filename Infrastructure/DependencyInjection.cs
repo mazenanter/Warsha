@@ -91,7 +91,9 @@ namespace Infrastructure
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddHttpContextAccessor();
             services.AddScoped<IWorkshopRepository, WorkshopRepository>();
+            services.AddScoped<IPermissionRepository, PermissionRepository>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IAdminService, AdminService>();
             return services;
         }
     }

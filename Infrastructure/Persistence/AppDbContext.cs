@@ -17,6 +17,9 @@ namespace Infrastructure.Persistence
         public DbSet<Workshop> Workshops { get; set; }
         public DbSet<WorkshopService> WorkshopServices { get; set; }
         public DbSet<ServiceCategory> ServiceCategories { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options, IPublisher publisher) : base(options)
         {

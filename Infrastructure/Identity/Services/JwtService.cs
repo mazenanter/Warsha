@@ -25,7 +25,9 @@ namespace Infrastructure.Identity.Services
         }
 
         public string GenerateAccessToken(int userId, string email, IList<string> roles, 
-        int? clientId = null, int? workshopId = null)
+        int? clientId = null, int? workshopId = null,
+        IList<string>? permissions = null
+        )
         {
             var claims = new List<Claim> {
            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
@@ -43,6 +45,11 @@ namespace Infrastructure.Identity.Services
 
             if (clientId.HasValue)
                 claims.Add(new Claim("clientId", clientId.Value.ToString()));
+
+            if (permissions != null)
+                foreach (var permission in permissions)
+                    claims.Add(new Claim("Permission", permission));
+
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Key not configured"))
             );

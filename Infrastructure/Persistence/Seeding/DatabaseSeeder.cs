@@ -1,5 +1,6 @@
 ﻿using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,11 @@ namespace Infrastructure.Persistence.Seeding
         public static async Task SeedAllAsync(
             RoleManager<IdentityRole<int>> roleManager,
             UserManager<ApplicationUser> userManager,
+             AppDbContext context,
             IConfiguration configuration)
         {
             await RoleSeeder.SeedAsync(roleManager);
+            await PermissionSeeder.SeedAsync(context);
             await SuperAdminSeeder.SeedAsync(userManager, configuration);
         }
     }

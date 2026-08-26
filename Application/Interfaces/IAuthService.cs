@@ -15,5 +15,6 @@ namespace Application.Interfaces
         public Task<Result> ResetPassword(ResetPasswordRequest resetPasswordRequest);
         public Task<Result> RevokeTokenAsync(string token);
         public Task<Result<AuthResult>> RefreshTokenAsync(string token);
+        public Task<Result<AuthResult>> AdminLoginAsync(AdminLoginRequest adminLoginRequest);
     }
 }

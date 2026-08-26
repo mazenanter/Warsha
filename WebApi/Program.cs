@@ -1,8 +1,10 @@
 
 using Application;
+using Domain.Constants;
 using Infrastructure;
 using Infrastructure.Identity;
 using Infrastructure.Persistence.Seeding;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using WebApi.Authorization;
 using WebApi.Middlewares;
 
 namespace WebApi
@@ -35,6 +38,15 @@ namespace WebApi
                 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
                 builder.Services.AddHttpContextAccessor();
                 builder.Services.AddControllers();
+                builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+                builder.Services.AddAuthorization(options =>
+                {
+                    foreach (var (name, _, _) in Permissions.GetAll())
+                    {
+                        options.AddPolicy(name, policy =>
+                            policy.Requirements.Add(new PermissionRequirement(name)));
+                    }
+                });
 
                 builder.Services.AddSwaggerGen(c =>
                 {
