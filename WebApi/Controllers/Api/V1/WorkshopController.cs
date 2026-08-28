@@ -22,22 +22,7 @@ namespace WebApi.Controllers.Api.V1
     public class WorkshopController : ApiControllerBase
     {
 
-        [HttpPost("verify/{id:int}")]   
-        [Authorize(Roles =$"{Roles.SuperAdmin},{Roles.Admin}")]
-        public async Task<IActionResult> VerifyWorkshop(int id)
-        {
-            var command = new VerifyWorkshopCommand { WorkshopId = id };
-            var result = await Mediator.Send(command);
-            return HandleResult(result);
-        }
-        [HttpPost("unverify/{id:int}")]
-        [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.Admin}")]
-        public async Task<IActionResult> UnverifyWorkshop(int id)
-        {
-            var command = new UnverifyWorkshopCommand { WorkshopId = id };
-            var result = await Mediator.Send(command);
-            return HandleResult(result);
-        }
+        
         [HttpPost("update-profile/{id:int}")]
         [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.Workshop}")]
         public async Task<IActionResult> UpdateWorkshopProfile([FromRoute] int id,[FromBody] UpdateWorkshopProfileCommand command)

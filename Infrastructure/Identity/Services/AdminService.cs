@@ -6,6 +6,7 @@ using Domain.Common;
 using Domain.Constants;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Infrastructure.Identity.Services
@@ -14,11 +15,13 @@ namespace Infrastructure.Identity.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public AdminService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork)
+        public AdminService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _userManager = userManager;
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result> AssignUserPermission(AssignUserPermissionsCommand request)
@@ -44,6 +47,18 @@ namespace Infrastructure.Identity.Services
 
         public async Task<Result> CreateAdminUser(CreateAdminUserCommand request)
         {
+            int userId = _currentUserService.UserId;
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user is null)
+                return Result.Failure("User not found");
+
+            var isSuperAdmin = await _userManager.IsInRoleAsync(
+                user,
+                Roles.SuperAdmin);
+
+            if (!isSuperAdmin)
+                return Result.Failure("You are not authorized to create an admin");
             var permissions = await _unitOfWork.Permissions
             .GetByIdsAsync(request.PermissionIds);
 
@@ -53,7 +68,7 @@ namespace Infrastructure.Identity.Services
             var existing = await _userManager.FindByEmailAsync(request.Email);
             if (existing != null)
                 return Result.Failure("Email already exists");
-
+            
             var appUser = new ApplicationUser
             {
                 UserName = request.Email,
@@ -64,12 +79,22 @@ namespace Infrastructure.Identity.Services
             };
 
             var result = await _userManager.CreateAsync(appUser, request.Password);
+
             if (!result.Succeeded)
                 return Result.Failure(
                     result.Errors.Select(e => e.Description).ToList(),
                     "User creation failed");
 
-            await _userManager.AddToRoleAsync(appUser, Roles.Admin);
+            var roleResult = await _userManager.AddToRoleAsync(
+     appUser,
+     Roles.Admin);
+
+            if (!roleResult.Succeeded)
+            {
+                return Result.Failure(
+                    roleResult.Errors.Select(e => e.Description).ToList(),
+                    "Failed to assign admin role");
+            }
 
             await _unitOfWork.Permissions
                 .AssignPermissionsToUserAsync(appUser.Id, request.PermissionIds);
@@ -81,6 +106,15 @@ namespace Infrastructure.Identity.Services
 
         public async Task<Result> CreateEmployee(CreateEmployeeCommand request)
         {
+            int userId = _currentUserService.UserId;
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user is null)
+                return Result.Failure("User not found");
+
+            var isSuperAdmin = await _userManager.IsInRoleAsync(
+                user,
+                Roles.SuperAdmin);
             var permissions = await _unitOfWork.Permissions
             .GetByIdsAsync(request.PermissionIds);
 
@@ -90,7 +124,28 @@ namespace Infrastructure.Identity.Services
             var existing = await _userManager.FindByEmailAsync(request.Email);
             if (existing != null)
                 return Result.Failure("Email already exists");
+            if (!isSuperAdmin)
+            {
+                var adminPermissions = _unitOfWork.Permissions
+               .GetAll()
+               .Where(x => x.UserPermissions.Any(x => x.UserId == userId)).ToList();
+                var adminModules = adminPermissions
+        .Select(p => p.Module)
+        .ToHashSet();
+                var unauthorizedPermissions = permissions
+        .Where(p => !adminModules.Contains(p.Module))
+        .ToList();
 
+                if (unauthorizedPermissions.Any())
+                {
+                    var modules = string.Join(", ",
+                        unauthorizedPermissions.Select(p => p.Module).Distinct());
+
+                    return Result.Failure(
+                        $"You don't have access to assign permissions for: {modules}");
+                }
+            }
+                
             var appUser = new ApplicationUser
             {
                 UserName = request.Email,

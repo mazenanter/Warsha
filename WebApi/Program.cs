@@ -3,6 +3,7 @@ using Application;
 using Domain.Constants;
 using Infrastructure;
 using Infrastructure.Identity;
+using Infrastructure.Persistence;
 using Infrastructure.Persistence.Seeding;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -86,8 +87,9 @@ namespace WebApi
                         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
                         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                         var config = services.GetRequiredService<IConfiguration>();
+                        var context = services.GetRequiredService<AppDbContext>();
 
-                        await DatabaseSeeder.SeedAllAsync(roleManager, userManager, config);
+                        await DatabaseSeeder.SeedAllAsync(roleManager, userManager, context, config);
                     }
                     catch (Exception ex)
                     {
