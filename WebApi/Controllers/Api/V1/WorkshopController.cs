@@ -1,5 +1,7 @@
-﻿using Application.Features.Workshop.Commands.Admin.Unverify;
+﻿using Application.Features.Client.Cars.Commands.AddCar;
+using Application.Features.Workshop.Commands.Admin.Unverify;
 using Application.Features.Workshop.Commands.Admin.Verify;
+using Application.Features.Workshop.Commands.Offers.CreateOffer;
 using Application.Features.Workshop.Commands.Services.AddWorkshopService;
 using Application.Features.Workshop.Commands.Services.DeleteWorkshopService;
 using Application.Features.Workshop.Commands.Services.ToggleServiceVisibility;
@@ -49,6 +51,13 @@ namespace WebApi.Controllers.Api.V1
         [HttpPost("me/specialization")]
         [Authorize(Roles = $"{Roles.Workshop}")]
         public async Task<IActionResult> AddSpecialization([FromBody] AddWorkshopSpecializationCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
+        }
+        [HttpPost("offer")]
+        [Authorize(Roles = $"{Roles.Workshop}")]
+        public async Task<IActionResult> AddOffer([FromBody] CreateOfferCommand command)
         {
             var result = await Mediator.Send(command);
             return HandleResult(result);

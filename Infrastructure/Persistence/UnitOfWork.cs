@@ -18,13 +18,18 @@ namespace Infrastructure.Persistence
             Specializations = new Repository<Specialization>(_context);
             Workshops = new WorkshopRepository(_context);
             Permissions = new PermissionRepository(_context);
-
+            Cars = new CarRepository(_context);
+            CarModels = new Repository<CarModel>(_context);
+            CarBrands = new Repository<CarBrand>(_context);
         }
         public IRepository<Client> Clients { get; }
         public IRepository<WorkshopService> WorkshopServices { get; }
         public IRepository<ServiceCategory> ServiceCategories { get; }
         public IRepository<Specialization> Specializations { get; }
+        public IRepository<CarModel> CarModels { get; }
+        public IRepository<CarBrand> CarBrands { get; }
         public IWorkshopRepository Workshops { get; }
+        public ICarRepository Cars { get; }
         public IPermissionRepository Permissions { get; }
 
 

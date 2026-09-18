@@ -20,6 +20,10 @@ namespace Domain.Entities
         public IReadOnlyCollection<WorkshopService> Services => _services;
         private readonly List<WorkshopSpecialization> _specializations = [];
         public IReadOnlyCollection<WorkshopSpecialization> Specializations => _specializations;
+
+        private readonly List<Offer> _offers = [];
+
+        public IReadOnlyCollection<Offer> Offers => _offers;
         public bool EmailDailySummary { get; private set; } = true;
         public string? GoogleMapsLink { get; private set; } = null;
         public TimeOnly OpeningTime { get; private set; } = new TimeOnly(8,0);
@@ -132,6 +136,29 @@ namespace Domain.Entities
             OpeningTime = openingTime;
             ClosingTime = closingTime;
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void AddWorkshopOffer(decimal discountPercentage, DateTime startAt, DateTime endAt)
+        {
+            var offer = Offer.CreateWorkshopOffer(this.Id, discountPercentage, startAt, endAt);
+
+            _offers.Add(offer);
+        }
+
+        public void AddServiceOffer(int serviceId, decimal discountPercentage, DateTime startAt, DateTime endsAt)
+        {
+            var service = _services.FirstOrDefault(x => x.Id == serviceId);
+
+            if (service == null)
+                throw new DomainException("Service does not belong to this workshop.");
+            var offer = Offer.CreateServiceOffer(
+        this.Id,
+        service.Id,
+        discountPercentage,
+        startAt,
+        endsAt);
+
+            _offers.Add(offer);
         }
     }
 }

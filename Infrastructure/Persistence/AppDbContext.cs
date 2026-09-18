@@ -20,6 +20,10 @@ namespace Infrastructure.Persistence
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Car> Cars { get; set; }
+        public DbSet<CarModel> CarModels { get; set; }
+        public DbSet<CarBrand> CarBrands { get; set; }
+        public DbSet<Offer> Offers { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options, IPublisher publisher) : base(options)
         {

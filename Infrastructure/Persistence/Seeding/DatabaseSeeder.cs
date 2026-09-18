@@ -19,6 +19,9 @@ namespace Infrastructure.Persistence.Seeding
             IConfiguration configuration)
         {
             await RoleSeeder.SeedAsync(roleManager);
+            await CarBrandSeeder.SeedAsync(context);
+
+            await CarModelSeeder.SeedAsync(context);
             await PermissionSeeder.SeedAsync(context);
             await SuperAdminSeeder.SeedAsync(userManager, configuration);
         }

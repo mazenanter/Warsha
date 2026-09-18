@@ -21,5 +21,8 @@ namespace Infrastructure.Persistence.Repositories
             => await _context.Workshops
                 .Include(w => w.Services)
                 .FirstOrDefaultAsync(w => w.Id == id, ct);
+
+        public async Task<Workshop?> GetByUserId(int userId, CancellationToken ct = default)
+       => await _context.Workshops.FirstOrDefaultAsync(x => x.UserId == userId);
     }
 }

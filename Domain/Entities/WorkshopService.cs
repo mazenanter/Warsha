@@ -14,6 +14,9 @@ namespace Domain.Entities
         public Workshop Workshop { get;private set; }
         public int DurationMin { get; private set; } 
         public bool IsVisible { get; private set; } = true;
+        private readonly List<Offer> _offers = [];
+
+        public IReadOnlyCollection<Offer> Offers => _offers;
         public string DescriptionEn { get; private set; }
         public string DescriptionAr { get; private set; }
 

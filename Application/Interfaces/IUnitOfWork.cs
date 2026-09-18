@@ -8,8 +8,11 @@ namespace Application.Interfaces
     {
         public IRepository<Client> Clients { get;}
         public IWorkshopRepository Workshops { get;}
+        public ICarRepository Cars { get;}
         public IRepository<WorkshopService> WorkshopServices { get;}
         public IRepository<ServiceCategory> ServiceCategories { get;}
+        public IRepository<CarBrand> CarBrands { get;}
+        public IRepository<CarModel> CarModels { get;}
         public IRepository<Specialization> Specializations { get;}
         public IPermissionRepository Permissions { get; }
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

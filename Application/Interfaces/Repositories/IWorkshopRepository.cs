@@ -10,5 +10,7 @@ namespace Application.Interfaces.Repositories
 
         Task<Workshop?> GetByIdWithDetailsAsync(int id, CancellationToken ct = default);
 
+        Task<Workshop?> GetByUserId(int userId, CancellationToken ct = default);
+
     }
 }

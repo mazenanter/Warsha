@@ -8,6 +8,8 @@ namespace Domain.Entities
         public string Name { get; private set; } = default!;
         public string PhoneNumber { get; private set; } = default!;
         public string Email { get; private set; } = default!;
+        private readonly List<Car> _cars = [];
+        public IReadOnlyCollection<Car> Cars => _cars;
 
         protected Client() { }
 
@@ -46,6 +48,12 @@ namespace Domain.Entities
             Email = email;
             PhoneNumber = phoneNumber;
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void AddCar( int carModelId, int year, string? licensePlate, int? currentKm)
+        {
+            var car = Car.Create(this.Id, carModelId, year, licensePlate, currentKm);
+            _cars.Add(car);
         }
 
     }

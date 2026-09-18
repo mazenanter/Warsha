@@ -30,6 +30,7 @@ namespace Application.Features.Workshop.Queries.Services.GetAllServices
         x.NameEn.Contains(request.SearchTerm) ||
         x.NameAr.Contains(request.SearchTerm));
             }
+            
             var totalRecords = await query.CountAsync(cancellationToken);
             var data = await query
                 .OrderByDescending(je => je.CreatedAt)

@@ -40,7 +40,7 @@
 
         public static IEnumerable<(string Name, string Code, string Module)> GetAll() =>
         [
-            ("View Workshops",Workshops.View,  "Workshops"),
+        ("View Workshops",Workshops.View,  "Workshops"),
         ("Manage Workshops",Workshops.Manage,  "Workshops"),
         ("Verify Workshops",Workshops.Verify,  "Workshops"),
         ("UnVerify Workshops",Workshops.Verify,  "Workshops"),
