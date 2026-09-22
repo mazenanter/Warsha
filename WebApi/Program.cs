@@ -39,6 +39,15 @@ namespace WebApi
                 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
                 builder.Services.AddHttpContextAccessor();
                 builder.Services.AddControllers();
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowAll", policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    });
+                });
                 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
                 builder.Services.AddAuthorization(options =>
                 {
@@ -98,7 +107,7 @@ namespace WebApi
                     }
                 }
                 app.UseExceptionHandler();
-
+                app.UseCors("AllowAll");
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
