@@ -2,7 +2,8 @@
 using Application.Features.Client.Cars.Commands.UpdateCar;
 using Application.Features.Client.Cars.Queries.GetAll;
 using Application.Features.Client.Cars.Queries.GetById;
-
+using Application.Features.Client.Workshops.Queries.GetAll;
+using Application.Features.Client.Workshops.Queries.GetById;
 using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -43,6 +44,22 @@ namespace WebApi.Controllers.Api.V1
         {
             var result = await Mediator.Send(command);
             return HandleResult(result);
+        }
+
+        [HttpGet]
+        [Authorize(Roles =$"{Roles.Client}")]
+        public async Task<IActionResult> GetWorkshopsWithFilter([FromQuery] GetWorkshopsQuery query)
+        {
+            var result = await Mediator.Send(query);
+            return HandleGenericResult(result);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetWorkshopById([FromRoute] int id, [FromQuery] GetWorkshopByIdQuery query)
+        {
+            query.WorkshopId = id;
+            var result = await Mediator.Send(query);
+            return HandleGenericResult(result);
         }
     }
 }
