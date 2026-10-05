@@ -15,6 +15,10 @@ using Application.Features.Loyalty.Commands.RedeemReward;
 using Application.Features.Loyalty.Queries.GetAvailableRewards;
 using Application.Features.Loyalty.Queries.GetMyWallet;
 using Application.Features.Loyalty.Queries.GetTransactionHistory;
+
+using Application.Features.Client.Workshops.Queries.GetAll;
+using Application.Features.Client.Workshops.Queries.GetById;
+
 using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -56,6 +60,7 @@ namespace WebApi.Controllers.Api.V1
             var result = await Mediator.Send(command);
             return HandleResult(result);
         }
+
         [HttpGet("loyalty/wallet")]
         [Authorize(Roles = $"{Roles.Client}")]
         public async Task<IActionResult> GetWallet(CancellationToken ct)
@@ -134,5 +139,23 @@ namespace WebApi.Controllers.Api.V1
         public async Task<IActionResult> MarkRead(int id, CancellationToken ct)
             => HandleResult(await Mediator.Send(
                 new MarkNotificationReadCommand(id), ct));
+
+
+        [HttpGet]
+        [Authorize(Roles =$"{Roles.Client}")]
+        public async Task<IActionResult> GetWorkshopsWithFilter([FromQuery] GetWorkshopsQuery query)
+        {
+            var result = await Mediator.Send(query);
+            return HandleGenericResult(result);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetWorkshopById([FromRoute] int id, [FromQuery] GetWorkshopByIdQuery query)
+        {
+            query.WorkshopId = id;
+            var result = await Mediator.Send(query);
+            return HandleGenericResult(result);
+        }
+
     }
 }

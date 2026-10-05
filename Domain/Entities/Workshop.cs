@@ -28,9 +28,11 @@ namespace Domain.Entities
         public string? GoogleMapsLink { get; private set; } = null;
         public TimeOnly OpeningTime { get; private set; } = new TimeOnly(8,0);
         public TimeOnly ClosingTime { get; private set; } = new TimeOnly(8, 0);
+
         public bool IsBusy { get; private set; }
         public DateTime? BusyFrom { get; private set; }
         public DateTime? BusyUntil { get; private set; }
+
 
         protected Workshop() { }
 
