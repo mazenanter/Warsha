@@ -9,10 +9,11 @@ namespace Application.Features.Auth.DTOs
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 
-        public int? UserId { get; set; }
+        public int? Id { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 
         public string? Email { get; set; }
+        
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? AccessToken { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

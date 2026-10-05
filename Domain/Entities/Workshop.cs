@@ -29,9 +29,11 @@ namespace Domain.Entities
         public TimeOnly OpeningTime { get; private set; } = new TimeOnly(8,0);
         public TimeOnly ClosingTime { get; private set; } = new TimeOnly(8, 0);
 
-        public TimeOnly StartBusyTime { get;set; } = new TimeOnly(8, 0);
-        public TimeOnly BusyDuration { get;set; } = new TimeOnly(8, 0);
-        public bool BusyStatus {get; set;}
+        public bool IsBusy { get; private set; }
+        public DateTime? BusyFrom { get; private set; }
+        public DateTime? BusyUntil { get; private set; }
+
+
         protected Workshop() { }
 
         public static Workshop Create(int userId,string email, string name, string phone, string address)
@@ -161,6 +163,47 @@ namespace Domain.Entities
         endsAt);
 
             _offers.Add(offer);
+        }
+        public bool CanAcceptBooking()
+        {
+            if (!IsVerified)
+                return false;
+
+            if (!AcceptOnlineBookings)
+                return false;
+
+            if (IsBusy && BusyUntil.HasValue)
+            {
+                if (DateTime.UtcNow >= BusyUntil.Value)
+                {
+                    ClearBusy();
+                    return true;
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetBusy(DateTime from, DateTime until)
+        {
+            if (until <= DateTime.UtcNow)
+                throw new DomainException("Busy until time must be in the future");
+            if (until <= from)
+                throw new DomainException("Busy until must be after busy from");
+
+            IsBusy = true;
+            BusyFrom = from;
+            BusyUntil = until;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void ClearBusy()
+        {
+            IsBusy = false;
+            BusyFrom = null;
+            BusyUntil = null;
+            UpdatedAt = DateTime.UtcNow;
         }
     }
 }

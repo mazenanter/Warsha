@@ -21,9 +21,27 @@ namespace Infrastructure.Persistence
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Car> Cars { get; set; }
+        public DbSet<PlatformFeeConfig> PlatformFeeConfigs { get; set; }
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<WorkshopSubscription> WorkshopSubscriptions { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<CarModel> CarModels { get; set; }
         public DbSet<CarBrand> CarBrands { get; set; }
         public DbSet<Offer> Offers { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<BookingService> BookingItems { get; set; }
+        public DbSet<Quote> Quotes { get; set; }
+        public DbSet<QuoteItem> QuoteItems { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<BookingFee> BookingFees { get; set; }
+        public DbSet<LoyaltyWallet> LoyaltyWallets { get; set; }
+        public DbSet<LoyaltyTransaction> LoyaltyTransactions { get; set; }
+        public DbSet<LoyaltyReward> LoyaltyRewards { get; set; }
+        public DbSet<RewardVoucher> RewardVouchers { get; set; }
+        public DbSet<LoyaltyPointRule> LoyaltyPointRules { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<DeviceToken> DeviceTokens { get; set; }
+        public DbSet<LoyaltyExpirationConfig> LoyaltyExpirationConfigs { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options, IPublisher publisher) : base(options)
         {

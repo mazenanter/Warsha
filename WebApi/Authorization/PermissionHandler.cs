@@ -9,6 +9,11 @@ namespace WebApi.Authorization
       AuthorizationHandlerContext context,
       PermissionRequirement requirement)
         {
+            Console.WriteLine($"Required Permission: {requirement.Permission}");
+            foreach (var claim in context.User.Claims)
+            {
+                Console.WriteLine($"{claim.Type} = {claim.Value}");
+            }
             if (context.User.IsInRole(Roles.SuperAdmin))
             {
                 context.Succeed(requirement);

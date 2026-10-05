@@ -3,14 +3,11 @@ using Application;
 using Domain.Constants;
 using Infrastructure;
 using Infrastructure.Identity;
+using Infrastructure.Jobs;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Seeding;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using WebApi.Authorization;
@@ -38,6 +35,7 @@ namespace WebApi
                 builder.Services.AddProblemDetails();
                 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
                 builder.Services.AddHttpContextAccessor();
+                builder.Services.AddHostedService<ExpirePointsJob>();
                 builder.Services.AddControllers();
                 builder.Services.AddCors(options =>
                 {
@@ -51,10 +49,12 @@ namespace WebApi
                 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
                 builder.Services.AddAuthorization(options =>
                 {
-                    foreach (var (name, _, _) in Permissions.GetAll())
+
+                    foreach (var (_, code, _) in Permissions.GetAll())
                     {
-                        options.AddPolicy(name, policy =>
-                            policy.Requirements.Add(new PermissionRequirement(name)));
+                        Console.WriteLine($"Registering policy: {code}");
+                        options.AddPolicy(code, policy =>
+                            policy.Requirements.Add(new PermissionRequirement(code)));
                     }
                 });
 

@@ -43,7 +43,7 @@
         ("View Workshops",Workshops.View,  "Workshops"),
         ("Manage Workshops",Workshops.Manage,  "Workshops"),
         ("Verify Workshops",Workshops.Verify,  "Workshops"),
-        ("UnVerify Workshops",Workshops.Verify,  "Workshops"),
+        ("UnVerify Workshops", Workshops.UnVerify, "Workshops"),
         (  "View Bookings",   Bookings.View,   "Bookings"),
         ( "Manage Bookings",Bookings.Manage,   "Bookings"),
         ( "View Clients", Clients.View,        "Clients"),

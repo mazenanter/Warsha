@@ -27,7 +27,7 @@ namespace Application.Features.Auth.Commands.ForgotPassword
             if (!result.IsSuccess)
                 return result;
 
-            var client = await _unitOfWork.Clients.FindAsync(c => c.UserId == result.Data!.UserId);
+            var client = await _unitOfWork.Clients.FindAsync(c => c.UserId == result.Data!.Id);
             try
             {
                 await _emailService.SendOtpAsync(request.Email, client.Name, result!.Data!.OTP);
