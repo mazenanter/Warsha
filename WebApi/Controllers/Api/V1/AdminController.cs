@@ -3,6 +3,8 @@ using Application.Features.Admin.Commands.CreateEmployee;
 using Application.Features.Admin.Queries.GetAllPermissions;
 using Application.Features.Admin.Queries.GetUserPermissions;
 using Application.Features.Auth.Commands.AdminLogin;
+using Application.Features.Loyalty.Commands.CreateReward;
+using Application.Features.Loyalty.Commands.ManualAdjustment;
 using Application.Features.Workshop.Commands.Admin.Unverify;
 using Application.Features.Workshop.Commands.Admin.Verify;
 using Domain.Constants;
@@ -68,5 +70,17 @@ namespace WebApi.Controllers.Api.V1
             var result = await Mediator.Send(new GetUserPermissionsQuery { UserId = id});
             return HandleGenericResult(result);
         }
+        [HttpPost("loyalty/rewards")]
+        public async Task<IActionResult> CreateReward(
+       CreateRewardCommand command, CancellationToken ct)
+       => HandleGenericResult(await Mediator.Send(command, ct));
+
+        [HttpPost("loyalty/clients/{clientId:int}/adjust")]
+        public async Task<IActionResult> AdjustPoints(
+            int clientId,
+            [FromBody] ManualAdjustmentCommand command,
+            CancellationToken ct)
+            => HandleResult(await Mediator.Send(
+                command with { ClientId = clientId }, ct));
     }
 }
