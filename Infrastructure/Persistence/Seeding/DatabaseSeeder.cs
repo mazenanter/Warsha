@@ -27,6 +27,7 @@ namespace Infrastructure.Persistence.Seeding
             await SuperAdminSeeder.SeedAsync(userManager, configuration);
             await SeedMissingWalletsToUser.CreateMissingWalletsAsync(context);
             await PlatformFeeConfigSeeder.SeedAsync(context);
+            await ServiceCategorySeeder.SeedAsync(context);
         }
     }
 }

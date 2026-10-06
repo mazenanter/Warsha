@@ -14,11 +14,13 @@ namespace Application.Features.Client.Workshops.DTOs
         public string? GoogleMapsLink { get; set; }
         public TimeOnly OpeningTime { get; set; }
         public TimeOnly ClosingTime { get; set; }
-        public TimeOnly StartBusyTime { get;set; } = new TimeOnly(8, 0);
-        public TimeOnly BusyDuration { get;set; } = new TimeOnly(8, 0);
+        public DateTime? StartBusyTime { get;set; }
+        public DateTime? BusyUntil { get;set; } 
         public bool BusyStatus {get; set;}
 
         public List<WorkshopServiceResponseDto> Services { get; set; } = new();
         public PagedResult<ReviewResponseDto> Reviews { get; set; } = default!;
     }
 }
+
+    

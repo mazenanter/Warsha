@@ -268,24 +268,51 @@ namespace Infrastructure.Identity.Services
         public async Task<Result<AuthResult>> WorkshopLoginAsync(WorkshopLoginRequest workshopLoginRequest)
         {
             var workshop = await _userManager.FindByEmailAsync(workshopLoginRequest.Email);
-            if(workshop == null || !await _userManager.CheckPasswordAsync(workshop, workshopLoginRequest.Password))
+
+            if (workshop == null ||
+                !await _userManager.CheckPasswordAsync(
+                    workshop,
+                    workshopLoginRequest.Password))
             {
                 return Result<AuthResult>.Failure("Invalid email or password");
             }
-            if(!workshop.IsActive)
+
+            if (!workshop.IsActive)
             {
-                return Result<AuthResult>.Failure("Your account is not active. Please contact support.");
+                return Result<AuthResult>.Failure(
+                    "Your account is not active. Please contact support.");
             }
-            var workshopEntity = await _unitOfWork.Workshops.FindAsync(x=>x.UserId == workshop.Id);
-            if(workshopEntity.IsVerified == false)
+
+            var workshopEntity = await _unitOfWork.Workshops
+                .FindAsync(x => x.UserId == workshop.Id);
+
+            if (workshopEntity == null)
             {
-                return Result<AuthResult>.Failure("Your account is not verified yet. Please contact support.");
+                return Result<AuthResult>.Failure(
+                    "Workshop profile not found. Please contact support.");
             }
+
+            if (!workshopEntity.IsVerified)
+            {
+                return Result<AuthResult>.Failure(
+                    "Your account is not verified yet. Please contact support.");
+            }
+
             var roles = await _userManager.GetRolesAsync(workshop);
-            var token = _jwtService.GenerateAccessToken(workshop.Id, workshopLoginRequest.Email, roles,workshopId: workshopEntity.Id);
+
+            var token = _jwtService.GenerateAccessToken(
+                workshop.Id,
+                workshopLoginRequest.Email,
+                roles,
+                workshopId: workshopEntity.Id);
+
             workshop.RefreshTokens ??= new List<RefreshToken>();
-            var activeRefreshToken = workshop.RefreshTokens.FirstOrDefault(i => i.IsActive);
+
+            var activeRefreshToken = workshop.RefreshTokens
+                .FirstOrDefault(i => i.IsActive);
+
             var authResult = new AuthResult();
+
             if (activeRefreshToken != null)
             {
                 authResult.RefreshToken = activeRefreshToken.Token;
@@ -293,17 +320,23 @@ namespace Infrastructure.Identity.Services
             else
             {
                 var refreshToken = _jwtService.GenerateRefreshToken();
+
                 workshop.RefreshTokens.Add(refreshToken);
-                await _userManager.UpdateAsync(workshop);
+
                 authResult.RefreshToken = refreshToken.Token;
             }
-            var workshopId = await _unitOfWork.Workshops.FindAsync(x => x.Id == workshop.Id);
+
             authResult.AccessToken = token;
             authResult.Email = workshopLoginRequest.Email;
-            authResult.Id = workshopId.Id;
+            authResult.Id = workshopEntity.Id;
+            authResult.Name = workshopEntity.Name;
             authResult.ExpiresAt = DateTime.UtcNow.AddHours(12);
+
             await _userManager.UpdateAsync(workshop);
-            return Result<AuthResult>.Success(authResult, "Login successful");
+
+            return Result<AuthResult>.Success(
+                authResult,
+                "Login successful");
         }
 
         public async Task<Result<AuthResult>> WorkShopRegisterAsync(WorkshopRegisterRequest registerRequest)
@@ -469,6 +502,7 @@ namespace Infrastructure.Identity.Services
                 Id = user.Id,
                 Email = user.Email,
                 AccessToken = accessToken,
+                Name = user.UserName,
                 RefreshToken = refreshTokenValue,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60)
             }, "Login successful");

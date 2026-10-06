@@ -11,14 +11,13 @@ using Application.Features.Client.Cars.Commands.AddCar;
 using Application.Features.Client.Cars.Commands.UpdateCar;
 using Application.Features.Client.Cars.Queries.GetAll;
 using Application.Features.Client.Cars.Queries.GetById;
-using Application.Features.Loyalty.Commands.RedeemReward;
-using Application.Features.Loyalty.Queries.GetAvailableRewards;
-using Application.Features.Loyalty.Queries.GetMyWallet;
-using Application.Features.Loyalty.Queries.GetTransactionHistory;
-
 using Application.Features.Client.Workshops.Queries.GetAll;
 using Application.Features.Client.Workshops.Queries.GetById;
-
+using Application.Features.Loyalty.Commands.RedeemReward;
+using Application.Features.Loyalty.Queries.GetAvailableRewards;
+using Application.Features.Loyalty.Queries.GetMyVouchers;
+using Application.Features.Loyalty.Queries.GetMyWallet;
+using Application.Features.Loyalty.Queries.GetTransactionHistory;
 using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -141,7 +140,7 @@ namespace WebApi.Controllers.Api.V1
                 new MarkNotificationReadCommand(id), ct));
 
 
-        [HttpGet]
+        [HttpGet("workshops")]
         [Authorize(Roles =$"{Roles.Client}")]
         public async Task<IActionResult> GetWorkshopsWithFilter([FromQuery] GetWorkshopsQuery query)
         {
@@ -149,13 +148,17 @@ namespace WebApi.Controllers.Api.V1
             return HandleGenericResult(result);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("workshops/{id:int}")]
         public async Task<IActionResult> GetWorkshopById([FromRoute] int id, [FromQuery] GetWorkshopByIdQuery query)
         {
             query.WorkshopId = id;
             var result = await Mediator.Send(query);
             return HandleGenericResult(result);
         }
-
+        [HttpGet("loyalty/vouchers")]
+        public async Task<IActionResult> GetMyVouchers(
+    [FromQuery] string? status,
+    CancellationToken ct = default)
+    => HandleGenericResult(await Mediator.Send(new GetMyVouchersQuery(status), ct));
     }
 }

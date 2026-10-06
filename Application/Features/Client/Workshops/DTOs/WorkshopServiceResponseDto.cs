@@ -5,7 +5,8 @@ namespace Application.Features.Client.Workshops.DTOs
         public int Id { get; set; }
         public string NameEn { get; set; } = default!;
         public string NameAr { get; set; } = default!;
-        public string Category { get; set; } = default!;
+        public string CategoryEn { get; set; } = default!;
+        public string CategoryAr { get; set; } = default!;
         public int Duration { get; set; }
         public decimal MinPrice { get; set; }
         public decimal MaxPrice { get; set; }

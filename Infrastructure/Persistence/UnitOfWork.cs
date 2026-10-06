@@ -14,7 +14,6 @@ namespace Infrastructure.Persistence
             _context = context;
 
             Clients = new ClientRepository(_context);
-            Clients = new Repository<Client>(_context);
             Reviews = new Repository<Review>(_context);
 
             WorkshopServices = new Repository<WorkshopService>(_context);
@@ -45,7 +44,6 @@ namespace Infrastructure.Persistence
             Notifications = new NotificationRepository(_context);
         }
 
-        public IRepository<Client> Clients { get; }
         public IRepository<Review> Reviews { get; }
 
         public IRepository<WorkshopService> WorkshopServices { get; }

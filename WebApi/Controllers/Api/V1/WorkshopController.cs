@@ -22,6 +22,7 @@ using Application.Features.Workshop.Commands.Specializations.AddSpecialization;
 using Application.Features.Workshop.Commands.Specializations.RemoveSpecialization;
 using Application.Features.Workshop.Commands.UpdateProfile;
 using Application.Features.Workshop.Commands.UpdateSettings;
+using Application.Features.Workshop.Queries.ServiceCategory.GetAll;
 using Application.Features.Workshop.Queries.Services.GetAllServices;
 using Application.Features.Workshop.Queries.Services.GetServiceById;
 using Domain.Constants;
@@ -198,5 +199,10 @@ namespace WebApi.Controllers.Api.V1
             int id, CancellationToken ct)
             => HandleResult(await Mediator.Send(
                 new MarkNotificationReadCommand(id), ct));
+        [HttpGet("service-categories")]
+        public async Task<IActionResult> GetServiceCategories(
+           CancellationToken ct = default)
+           => HandleGenericResult(await Mediator.Send(
+               new GetAllServiceCategoriesQuery(), ct));
     }
 }
