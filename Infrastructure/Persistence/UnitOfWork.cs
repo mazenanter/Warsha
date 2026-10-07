@@ -15,6 +15,8 @@ namespace Infrastructure.Persistence
 
             Clients = new ClientRepository(_context);
             Reviews = new Repository<Review>(_context);
+            Reminders = new Repository<Reminder>(_context);
+            SavedWorkshops = new Repository<SavedWorkshop>(_context);
 
             WorkshopServices = new Repository<WorkshopService>(_context);
             ServiceCategories = new Repository<ServiceCategory>(_context);
@@ -48,8 +50,10 @@ namespace Infrastructure.Persistence
         public IRepository<Review> Reviews { get; }
 
         public IRepository<WorkshopService> WorkshopServices { get; }
+        public IRepository<Reminder> Reminders { get; }
         public IRepository<ServiceCategory> ServiceCategories { get; }
         public IRepository<Specialization> Specializations { get; }
+        public IRepository<SavedWorkshop> SavedWorkshops {get;}
         public IRepository<CarModel> CarModels { get; }
         public IRepository<CarBrand> CarBrands { get; }
         public IRepository<BookingService> BookingItems { get; }
@@ -76,7 +80,7 @@ namespace Infrastructure.Persistence
         public ICarRepository Cars { get; }
         public IPermissionRepository Permissions { get; }
 
-
+        IRepository<Client> IUnitOfWork.Clients => Clients;
 
         public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
         {

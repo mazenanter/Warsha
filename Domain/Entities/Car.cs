@@ -4,9 +4,9 @@ namespace Domain.Entities
 {
     public class Car : BaseEntity
     {
-        public int ClientId { get; private set; }
-        public Client Client { get; private set; } = default!;
-
+        public int ClientId { get;private set; }
+        public Client Client { get;private set; }=null!;
+     
         public int Year { get; private set; }
 
         public int CarModelId { get; private set; }

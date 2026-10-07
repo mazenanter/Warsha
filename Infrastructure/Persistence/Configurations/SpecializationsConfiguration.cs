@@ -22,10 +22,18 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
 
-           
-
             builder.HasIndex(x => x.Name)
                 .IsUnique();
+
+            builder.HasOne(x => x.CarBrand)
+                .WithMany()
+                .HasForeignKey(x => x.CarBrandId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(x => x.CarModel)
+                .WithMany()
+                .HasForeignKey(x => x.CarModelId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

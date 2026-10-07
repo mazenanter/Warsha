@@ -6,8 +6,8 @@ namespace Domain.Entities
     {
         public int WorkshopId { get; private set; }
         public int SpecializationId { get; private set; }
-        public Workshop Workshop { get; private set; }
-        public Specialization Specialization { get; private set; }
+        public Workshop Workshop { get; private set; }= null!;
+        public Specialization Specialization { get; private set; }= null!;
         protected WorkshopSpecialization() { }
 
 

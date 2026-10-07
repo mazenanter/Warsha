@@ -8,7 +8,7 @@ namespace Domain.Common
     public class Result<T>
     {
         public bool IsSuccess { get; private set; }
-        public string Message { get; private set; }
+        public string Message { get; private set; }= null!;
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public T? Data { get; private set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -23,7 +23,7 @@ namespace Domain.Common
     public class Result
     {
         public bool IsSuccess { get; private set; }
-        public string Message { get; private set; }
+        public string Message { get; private set; }= null!;
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<string>? Errors { get; private set; } = null;
 

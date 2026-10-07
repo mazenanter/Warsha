@@ -6,7 +6,7 @@ namespace Domain.Common
 {
     public class PagedResult<T>
     {
-        public List<T> Items { get; private set; }
+        public List<T> Items { get; private set; }= null!;
         public int PageSize { get; private set; }
         public int PageNumber { get; private set; }
         public int TotalCount { get; private set; }
