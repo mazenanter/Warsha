@@ -69,13 +69,16 @@ namespace Application.Features.Booking.Commands.InitiateBooking
             var bookingNumber = GenerateBookingNumber();
             var booking = Domain.Entities.Booking.Create(
                 bookingNumber, client.Id, command.WorkshopId, command.CarId,
-                command.ScheduledAt, command.PaymentType,
-                feeConfig.ClientBookingFee, command.CustomerNotes);
+                command.ScheduledAt, command.PaymentType, command.CustomerNotes
+                 );
 
             foreach (var service in services)
                 booking.AddService(service.Id, service.NameEn, service.MinPrice);
 
-            booking.SetCommission(feeConfig.CommissionPct, feeConfig.WorkshopCancellationFee);
+            booking.SetPlatformFees(
+     feeConfig.ClientBookingFee,
+     feeConfig.CommissionPct,
+     feeConfig.WorkshopCancellationFee);
 
             await _unitOfWork.Bookings.AddAsync(booking, ct);
             await _unitOfWork.SaveChangesAsync(ct);

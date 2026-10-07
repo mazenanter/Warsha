@@ -40,7 +40,7 @@ namespace Domain.Entities
 
         protected Booking() { }
 
-        public static Booking Create(string bookingNumber,int clientId,int workshopId,int carId, DateTime scheduledAt, PaymentType paymentType, decimal confirmationFeeAmount, string? customerNotes)
+        public static Booking Create(string bookingNumber,int clientId,int workshopId,int carId, DateTime scheduledAt, PaymentType paymentType,  string? customerNotes)
         {
             if(string.IsNullOrWhiteSpace(bookingNumber))
             {
@@ -62,8 +62,7 @@ namespace Domain.Entities
             {
                 throw new DomainException("Scheduled date must be in the future.");
             }
-            if (confirmationFeeAmount < 0)
-                throw new DomainException("Confirmation fee cannot be negative");
+           
 
             var booking = new Booking
             {
@@ -73,7 +72,6 @@ namespace Domain.Entities
                 CarId = carId,
                 ScheduledAt = scheduledAt,
                 PaymentType = paymentType,
-                ConfirmationFeeAmount = confirmationFeeAmount,
                 CustomerNotes = customerNotes
             };
 
@@ -95,14 +93,39 @@ namespace Domain.Entities
             _items.Add(item);
             TotalAmount += price;
         }
-        public void SetCommission(decimal commissionPct, decimal workshopCancellationFee)
+        public void SetPlatformFees(
+    decimal confirmationFeePct,
+    decimal commissionPct,
+    decimal workshopCancellationFee)
         {
-            if (commissionPct < 0 || commissionPct > 100)
-                throw new DomainException("Commission must be between 0 and 100");
+            if (confirmationFeePct < 0 || confirmationFeePct > 100)
+                throw new DomainException(
+                    "Confirmation fee percentage must be between 0 and 100");
 
-            CommissionAmount = Math.Round(TotalAmount * commissionPct / 100, 2);
+            if (commissionPct < 0 || commissionPct > 100)
+                throw new DomainException(
+                    "Commission must be between 0 and 100");
+
+            if (workshopCancellationFee < 0)
+                throw new DomainException(
+                    "Cancellation fee cannot be negative");
+
+            ConfirmationFeeAmount =
+                Math.Round(TotalAmount * confirmationFeePct / 100, 2);
+
+            CommissionAmount =
+                Math.Round(TotalAmount * commissionPct / 100, 2);
+
             WorkshopCancellationFee = workshopCancellationFee;
         }
+        //public void SetCommission(decimal commissionPct, decimal workshopCancellationFee)
+        //{
+        //    if (commissionPct < 0 || commissionPct > 100)
+        //        throw new DomainException("Commission must be between 0 and 100");
+
+        //    CommissionAmount = Math.Round(TotalAmount * commissionPct / 100, 2);
+        //    WorkshopCancellationFee = workshopCancellationFee;
+        //}
         public void SetPaymentOrderId(string orderId)
         {
             PaymentOrderId = orderId;

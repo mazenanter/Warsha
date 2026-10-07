@@ -16,8 +16,9 @@ namespace Domain.Entities
          decimal commissionPct,
          decimal workshopCancellationFee)
         {
-            if (clientBookingFee < 0)
-                throw new DomainException("Booking fee cannot be negative");
+            if (clientBookingFee < 0 || clientBookingFee > 100)
+                throw new DomainException(
+                    "Client booking fee percentage must be between 0 and 100");
             if (commissionPct < 0 || commissionPct > 100)
                 throw new DomainException("Commission must be between 0 and 100");
             if (workshopCancellationFee < 0)
@@ -37,6 +38,9 @@ namespace Domain.Entities
             decimal commissionPct,
             decimal workshopCancellationFee)
         {
+            if (clientBookingFee < 0 || clientBookingFee > 100)
+                throw new DomainException(
+                    "Client booking fee percentage must be between 0 and 100");
             if (commissionPct < 0 || commissionPct > 100)
                 throw new DomainException("Commission must be between 0 and 100");
 

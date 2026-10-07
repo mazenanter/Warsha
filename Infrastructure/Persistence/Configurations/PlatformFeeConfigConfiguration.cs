@@ -12,7 +12,15 @@ namespace Infrastructure.Persistence.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.ClientBookingFee)
-                .HasPrecision(18, 2)
+     .HasPrecision(5, 2)
+     .IsRequired();
+
+            builder.Property(x => x.CommissionPct)
+                .HasPrecision(5, 2)
+                .IsRequired();
+
+            builder.Property(x => x.WorkshopCancellationFee)
+                .HasPrecision(5, 2)
                 .IsRequired();
 
             builder.Property(x => x.EffectiveFrom)
