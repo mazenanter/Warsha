@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Warsha.Infrastructure.Services;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 
 namespace Infrastructure
@@ -81,6 +82,21 @@ namespace Infrastructure
                 ClockSkew = TimeSpan.Zero
             };
         });
+            services.Configure<PaymobSettings>(configuration.GetSection("Paymob"));
+
+            services.AddHttpClient("Paymob");
+
+            //if (FirebaseAdmin.FirebaseApp.DefaultInstance == null)
+            //{
+            //    var credPath = configuration["Firebase:ServiceAccountPath"];
+            //    FirebaseAdmin.FirebaseApp.Create(new FirebaseAdmin.AppOptions
+            //    {
+            //        Credential = credPath != null
+            //            ? Google.Apis.Auth.OAuth2.GoogleCredential.FromFile(credPath)
+            //            : Google.Apis.Auth.OAuth2.GoogleCredential.GetApplicationDefault()
+            //    });
+            //}
+
             services.Configure<EmailSettings>(
     configuration.GetSection("EmailSettings"));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -94,6 +110,20 @@ namespace Infrastructure
             services.AddScoped<IPermissionRepository, PermissionRepository>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<ILoyaltyWalletRepository, LoyaltyWalletRepository>();
+            services.AddScoped<ILoyaltyTransactionRepository, LoyaltyTransactionRepository>();
+            services.AddScoped<ILoyaltyRewardRepository, LoyaltyRewardRepository>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<ICarRepository, CarRepository>();
+
+            services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+            services.AddScoped<IClientRepository, ClientRepository>();
+            services.AddScoped<IRewardVoucherRepository, RewardVoucherRepository>();
+            services.AddScoped<ILoyaltyPointRuleRepository, LoyaltyPointRuleRepository>();
+            services.AddScoped<IPaymentGatewayService, PaymobService>();
+            services.AddScoped<INotificationService, FirebaseNotificationService>();
+            services.AddScoped<ILoyaltyExpirationConfigRepository, LoyaltyExpirationConfigRepository>();
             return services;
         }
     }

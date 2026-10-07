@@ -12,7 +12,11 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.Name)
+            builder.Property(x => x.NameEn)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.Property(x => x.NameAr)
                 .IsRequired()
                 .HasMaxLength(100);
 
@@ -20,7 +24,7 @@ namespace Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(500);
 
-            builder.HasIndex(x => x.Name)
+            builder.HasIndex(x => x.NameEn)
                 .IsUnique();
         }
     }

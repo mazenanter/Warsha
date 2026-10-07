@@ -32,6 +32,14 @@ namespace Application.Features.Workshop.Commands.Services.AddWorkshopService
                 _logger.LogWarning("Workshop {WorkshopId} not found", workshopId);
                 return Result.Failure("Workshop not found");
             }
+            var category = await _unitOfWork.ServiceCategories
+    .GetByIdAsync(request.ServiceCategoryId, cancellationToken);
+
+            if (category is null)
+            {
+                return Result.Failure(
+                    "Service category not found.");
+            }
             var result = workshop.AddService(
            request.NameEn,request.NameAr, request.MinPrice, request.MaxPrice,
            request.DescriptionEn,request.DescriptionAr, request.Duration, request.ServiceCategoryId);

@@ -6,6 +6,6 @@
         public string Brand { get; set; }
         public string Model { get; set; }
         public int Year { get; set; }
-        public int? CurrentKm { get; set; }
+        public int? ActualOdometerKm { get; set; }
     }
 }

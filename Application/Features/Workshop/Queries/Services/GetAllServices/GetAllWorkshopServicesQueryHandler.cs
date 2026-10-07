@@ -43,7 +43,8 @@ namespace Application.Features.Workshop.Queries.Services.GetAllServices
                   NameEn = je.NameEn,
                   MaxPrice = je.MaxPrice,
                   MinPrice = je.MinPrice,
-                  Category = je.ServiceCategory.Name,
+                  CategoryEn = je.ServiceCategory.NameEn,
+                  CategoryAr = je.ServiceCategory.NameAr,
                   Duration = je.DurationMin,
                   IsActive = je.IsVisible
                 })

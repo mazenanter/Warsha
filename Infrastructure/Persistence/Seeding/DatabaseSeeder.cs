@@ -20,10 +20,14 @@ namespace Infrastructure.Persistence.Seeding
         {
             await RoleSeeder.SeedAsync(roleManager);
             await CarBrandSeeder.SeedAsync(context);
-
+            await LoyaltyRewardSeeder.SeedAsync(context);
+            await LoyaltyPointRuleSeeder.SeedAsync(context);
             await CarModelSeeder.SeedAsync(context);
             await PermissionSeeder.SeedAsync(context);
             await SuperAdminSeeder.SeedAsync(userManager, configuration);
+            await SeedMissingWalletsToUser.CreateMissingWalletsAsync(context);
+            await PlatformFeeConfigSeeder.SeedAsync(context);
+            await ServiceCategorySeeder.SeedAsync(context);
         }
     }
 }

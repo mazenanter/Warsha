@@ -27,7 +27,8 @@ namespace Application.Features.Workshop.Queries.Services.GetServiceById
             }
             var response = new WorkshopServiceDetailsResponseDto
             {
-                Category = workshopService.ServiceCategory.Name,
+                CategoryEn = workshopService.ServiceCategory.NameEn,
+                CategoryAr = workshopService.ServiceCategory.NameAr,
                 DescriptionAr = workshopService.DescriptionAr,
                 DescriptionEn = workshopService.DescriptionEn,Duration = workshopService.DurationMin,
                 Id = workshopService.Id,

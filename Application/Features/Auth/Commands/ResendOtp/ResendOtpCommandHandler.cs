@@ -27,7 +27,7 @@ namespace Application.Features.Auth.Commands.ResendOtp
             if (!result.IsSuccess)
                 return result;
 
-            var client  = await _unitOfWork.Clients.FindAsync(c=>c.UserId == result.Data!.UserId);
+            var client  = await _unitOfWork.Clients.FindAsync(c=>c.UserId == result.Data!.Id);
             try
             {
 

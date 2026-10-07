@@ -54,7 +54,7 @@ namespace Infrastructure.Identity.Services
 
                 return Result<AuthResult>.Success(new AuthResult
                 {
-                    UserId = user.Id,
+                    Id = user.Id,
                     CanResendOtp = true,
                     OTP = newOtp
                 }, "Verification code sent again");
@@ -83,9 +83,12 @@ namespace Infrastructure.Identity.Services
                 var client = Client.Create(appUser.Id, registerRequest.Name, registerRequest.Email, registerRequest.PhoneNumber);
                 await _unitOfWork.Clients.AddAsync(client);
                 await _unitOfWork.SaveChangesAsync();
-                var authResult = new AuthResult
+            var wallet = LoyaltyWallet.Create(client.Id);
+            await _unitOfWork.LoyaltyWallets.AddAsync(wallet);
+            await _unitOfWork.SaveChangesAsync();
+            var authResult = new AuthResult
                 {
-                    UserId = appUser.Id,
+                    Id = client.Id,
                     OTP = otp
 
                 };
@@ -132,7 +135,7 @@ namespace Infrastructure.Identity.Services
             await _userManager.UpdateAsync(user);
             var authResult = new AuthResult
             {
-                UserId = user.Id,
+                Id = user.Id,
                 OTP = otp
             };
             return Result<AuthResult>.Success(authResult, "OTP sent successfully check your email");
@@ -169,7 +172,7 @@ namespace Infrastructure.Identity.Services
             }
             authResult.AccessToken = token;
             authResult.Email = clientLoginRequest.Email;
-            authResult.UserId = user.Id;
+            authResult.Id = user.Id;
             authResult.ExpiresAt = DateTime.UtcNow.AddHours(12);
             await _userManager.UpdateAsync(user);
             return Result<AuthResult>.Success(authResult, "Login successful");
@@ -218,7 +221,7 @@ namespace Infrastructure.Identity.Services
 
             var authResult = new AuthResult
             {
-                UserId = user.Id,
+                Id = user.Id,
                 Email = user.Email,
                 AccessToken = accessToken,
                 RefreshToken = newRefreshToken.Token,
@@ -242,7 +245,7 @@ namespace Infrastructure.Identity.Services
             await _userManager.UpdateAsync(user);
             var authResult = new AuthResult
             {
-                UserId = user.Id,
+                Id = user.Id,
                 OTP = otp,
           
             };
@@ -265,24 +268,51 @@ namespace Infrastructure.Identity.Services
         public async Task<Result<AuthResult>> WorkshopLoginAsync(WorkshopLoginRequest workshopLoginRequest)
         {
             var workshop = await _userManager.FindByEmailAsync(workshopLoginRequest.Email);
-            if(workshop == null || !await _userManager.CheckPasswordAsync(workshop, workshopLoginRequest.Password))
+
+            if (workshop == null ||
+                !await _userManager.CheckPasswordAsync(
+                    workshop,
+                    workshopLoginRequest.Password))
             {
                 return Result<AuthResult>.Failure("Invalid email or password");
             }
-            if(!workshop.IsActive)
+
+            if (!workshop.IsActive)
             {
-                return Result<AuthResult>.Failure("Your account is not active. Please contact support.");
+                return Result<AuthResult>.Failure(
+                    "Your account is not active. Please contact support.");
             }
-            var workshopEntity = await _unitOfWork.Workshops.FindAsync(x=>x.UserId == workshop.Id);
-            if(workshopEntity.IsVerified == false)
+
+            var workshopEntity = await _unitOfWork.Workshops
+                .FindAsync(x => x.UserId == workshop.Id);
+
+            if (workshopEntity == null)
             {
-                return Result<AuthResult>.Failure("Your account is not verified yet. Please contact support.");
+                return Result<AuthResult>.Failure(
+                    "Workshop profile not found. Please contact support.");
             }
+
+            if (!workshopEntity.IsVerified)
+            {
+                return Result<AuthResult>.Failure(
+                    "Your account is not verified yet. Please contact support.");
+            }
+
             var roles = await _userManager.GetRolesAsync(workshop);
-            var token = _jwtService.GenerateAccessToken(workshop.Id, workshopLoginRequest.Email, roles,workshopId: workshopEntity.Id);
+
+            var token = _jwtService.GenerateAccessToken(
+                workshop.Id,
+                workshopLoginRequest.Email,
+                roles,
+                workshopId: workshopEntity.Id);
+
             workshop.RefreshTokens ??= new List<RefreshToken>();
-            var activeRefreshToken = workshop.RefreshTokens.FirstOrDefault(i => i.IsActive);
+
+            var activeRefreshToken = workshop.RefreshTokens
+                .FirstOrDefault(i => i.IsActive);
+
             var authResult = new AuthResult();
+
             if (activeRefreshToken != null)
             {
                 authResult.RefreshToken = activeRefreshToken.Token;
@@ -290,16 +320,23 @@ namespace Infrastructure.Identity.Services
             else
             {
                 var refreshToken = _jwtService.GenerateRefreshToken();
+
                 workshop.RefreshTokens.Add(refreshToken);
-                await _userManager.UpdateAsync(workshop);
+
                 authResult.RefreshToken = refreshToken.Token;
             }
+
             authResult.AccessToken = token;
             authResult.Email = workshopLoginRequest.Email;
-            authResult.UserId = workshop.Id;
+            authResult.Id = workshopEntity.Id;
+            authResult.Name = workshopEntity.Name;
             authResult.ExpiresAt = DateTime.UtcNow.AddHours(12);
+
             await _userManager.UpdateAsync(workshop);
-            return Result<AuthResult>.Success(authResult, "Login successful");
+
+            return Result<AuthResult>.Success(
+                authResult,
+                "Login successful");
         }
 
         public async Task<Result<AuthResult>> WorkShopRegisterAsync(WorkshopRegisterRequest registerRequest)
@@ -357,10 +394,11 @@ namespace Infrastructure.Identity.Services
             var newWorkshop = Workshop.Create(appUser.Id,registerRequest.Email, registerRequest.Name, registerRequest.Phone, registerRequest.Address);
             await _unitOfWork.Workshops.AddAsync(newWorkshop);
             await _unitOfWork.SaveChangesAsync();
+           
             var authResult = new AuthResult
             {
-                UserId = appUser.Id,
-                
+                Id = newWorkshop.Id
+              
             };
             return Result<AuthResult>.Success(authResult, "Registration Successful");
 
@@ -461,9 +499,10 @@ namespace Infrastructure.Identity.Services
 
             return Result<AuthResult>.Success(new AuthResult
             {
-                UserId = user.Id,
+                Id = user.Id,
                 Email = user.Email,
                 AccessToken = accessToken,
+                Name = user.UserName,
                 RefreshToken = refreshTokenValue,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60)
             }, "Login successful");

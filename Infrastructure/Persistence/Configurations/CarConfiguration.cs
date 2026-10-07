@@ -13,11 +13,18 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(x => x.Year)
                 .IsRequired();
 
-            builder.Property(x => x.CurrentKm)
-                .IsRequired(false);
-
             builder.Property(x => x.LicensePlate)
                 .HasMaxLength(20)
+                ;
+
+            builder.Property(x => x.ActualOdometerKm)
+                .IsRequired();
+
+            builder.Property(x => x.GpsAccumulatedKm)
+                .HasPrecision(10, 3)
+                .IsRequired();
+
+            builder.Property(x => x.GpsMileageLastUpdatedAt)
                 .IsRequired(false);
 
             builder.HasOne(x => x.Client)
@@ -29,6 +36,9 @@ namespace Infrastructure.Persistence.Configurations
                 .WithMany(x => x.Cars)
                 .HasForeignKey(x => x.CarModelId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(x => x.Corrections)
+                .HasField("_corrections");
 
             builder.HasIndex(x => x.ClientId);
             builder.HasIndex(x => x.CarModelId);

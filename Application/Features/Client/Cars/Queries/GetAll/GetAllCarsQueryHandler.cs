@@ -29,7 +29,7 @@ namespace Application.Features.Client.Cars.Queries.GetAll
                 Brand = car.CarModel.CarBrand.Name,
                 Model = car.CarModel.Name,
                 Year = car.Year,
-                CurrentKm = car.CurrentKm
+                ActualOdometerKm = car.ActualOdometerKm
             }).ToList();
             return Result<List<CarResponseDto>>.Success(carDtos,"Cars retrieved successfully.");
         }
