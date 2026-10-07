@@ -12,5 +12,6 @@ namespace Application.Interfaces.Repositories
         Task<Car?> GetByModelAndYearAsync(int model, int year, CancellationToken ct = default);
         Task<IEnumerable<Car>> GetAllCars( CancellationToken ct = default);
         Task<Car?> GetCarById(int id, CancellationToken ct = default);
+        Task<Car?> GetByIdWithCorrectionsAsync(int id, CancellationToken ct = default);
     }
 }

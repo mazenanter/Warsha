@@ -27,7 +27,7 @@ namespace Application.Features.Client.Cars.Queries.GetById
                 Brand = car.CarModel.CarBrand.Name,
                 Model = car.CarModel.Name,
                 Year = car.Year,
-                CurrentKm = car.CurrentKm
+                ActualOdometerKm = car.ActualOdometerKm
             };
             return Result<CarResponseDto>.Success(carResponseDto, "Car retrieved successfully.");
         }

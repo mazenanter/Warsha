@@ -10,6 +10,7 @@ namespace Application.Interfaces
         public IRepository<Review> Reviews { get;}
         public IWorkshopRepository Workshops { get;}
         public ICarRepository Cars { get;}
+      public  ITripRepository Trips { get; }
         public IRepository<WorkshopService> WorkshopServices { get;}
         public IRepository<ServiceCategory> ServiceCategories { get;}
         public IRepository<CarBrand> CarBrands { get;}

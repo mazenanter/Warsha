@@ -2,7 +2,10 @@
 using Application.Features.CarCatalog.Commands.AddCarModel;
 using Application.Features.CarCatalog.Queries.GetCarBrands;
 using Application.Features.CarCatalog.Queries.GetCarModels;
-
+using Application.Features.Client.Cars.Commands.CompleteTrip;
+using Application.Features.Client.Cars.Commands.CorrectOdometer;
+using Application.Features.Client.Cars.Commands.StartTrip;
+using Application.Features.Client.Cars.Queries.GetCarMileage;
 using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -42,5 +45,28 @@ namespace WebApi.Controllers.Api.V1
             var result = await Mediator.Send(command);
             return HandleResult(result);
         }
+        [HttpPost("{carId:int}/trips/start")]
+        public async Task<IActionResult> StartTrip(
+       [FromBody] StartTripCommand command
+       )
+        => HandleGenericResult(await Mediator.Send(
+           command));
+
+
+        [HttpPost("trips/{tripId:int}/complete")]
+        public async Task<IActionResult> CompleteTrip(
+          [FromBody] CompleteTripCommand command)
+            => HandleGenericResult(await Mediator.Send(
+               command));
+
+        [HttpGet("{carId:int}/mileage")]
+        public async Task<IActionResult> GetMileage(int carId, CancellationToken ct)
+            => HandleGenericResult(await Mediator.Send(new GetCarMileageQuery(carId), ct));
+
+        [HttpPost("{carId:int}/mileage/correction")]
+        public async Task<IActionResult> CorrectOdometer(
+           [FromBody] CorrectOdometerCommand command)
+            => HandleResult(await Mediator.Send(
+                command));
     }
 }

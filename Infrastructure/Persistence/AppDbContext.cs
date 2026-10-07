@@ -41,6 +41,8 @@ namespace Infrastructure.Persistence
         public DbSet<LoyaltyPointRule> LoyaltyPointRules { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<DeviceToken> DeviceTokens { get; set; }
+        public DbSet<Trip> Trips { get; set; }
+        public DbSet<OdometerCorrection> OdometerCorrections { get; set; }
         public DbSet<LoyaltyExpirationConfig> LoyaltyExpirationConfigs { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options, IPublisher publisher) : base(options)

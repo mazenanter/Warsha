@@ -20,6 +20,8 @@ namespace Application.Features.Client.Cars.Commands.AddCar
            
             var clientId = _currentUserService.UserId;
             var client = await _unitOfWork.Clients.FindAsync(x=>x.UserId == clientId);
+            if (client is null)
+                return Result.Failure("Client not found");
             if (client.Cars.Any(x =>
         x.CarModelId == request.CarModel &&
           x.Year == request.Year))
@@ -28,7 +30,7 @@ namespace Application.Features.Client.Cars.Commands.AddCar
                     "You already have a car with the same model and year."
                 );
             }
-            client.AddCar(request.CarModel, request.Year, null, null);
+            client.AddCar(request.CarModel, request.Year, null, request.ActualOdometerKm);
             await _unitOfWork.SaveChangesAsync();
             return Result.Success("Car added successfully.");
         }

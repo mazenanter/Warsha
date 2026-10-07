@@ -65,9 +65,9 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void AddCar( int carModelId, int year, string? licensePlate, int? currentKm)
+        public void AddCar( int carModelId, int year, string? licensePlate, int actualOdometerKm = 0)
         {
-            var car = Car.Create(this.Id, carModelId, year, licensePlate, currentKm);
+            var car = Car.Create(this.Id, carModelId, year, licensePlate,actualOdometerKm);
             _cars.Add(car);
         }
 

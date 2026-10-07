@@ -42,6 +42,7 @@ namespace Infrastructure.Persistence
             PaymentMethods = new Repository<PaymentMethod>(_context);
             DeviceTokens = new DeviceTokenRepository(_context);
             Notifications = new NotificationRepository(_context);
+            Trips = new TripRepository(_context);
         }
 
         public IRepository<Review> Reviews { get; }
@@ -56,6 +57,7 @@ namespace Infrastructure.Persistence
         public ILoyaltyWalletRepository LoyaltyWallets { get; }
         public ILoyaltyTransactionRepository LoyaltyTransactions { get; }
         public IBookingRepository Bookings { get; }
+        public ITripRepository Trips { get; }
         public INotificationRepository Notifications { get; }
         public IDeviceTokenRepository DeviceTokens { get; }
         public IClientRepository Clients { get; }
