@@ -7,6 +7,8 @@ namespace Application.Interfaces
     public interface IUnitOfWork
     {
         public IRepository<Client> Clients { get;}
+        public IRepository<SavedWorkshop> SavedWorkshops { get; }
+        public IRepository<Reminder> Reminders { get; }
         public IRepository<Review> Reviews { get;}
         public IWorkshopRepository Workshops { get;}
         public ICarRepository Cars { get;}

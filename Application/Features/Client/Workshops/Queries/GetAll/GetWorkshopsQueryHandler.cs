@@ -109,9 +109,9 @@ namespace Application.Features.Client.Workshops.Queries.GetAll
             GoogleMapsLink = x.workshop.GoogleMapsLink,
             OpeningTime = x.workshop.OpeningTime,
             ClosingTime = x.workshop.ClosingTime,
-            BusyDuration = x.workshop.BusyDuration,
-            StartBusyTime = x.workshop.StartBusyTime,
-            BusyStatus = x.workshop.BusyStatus,
+            BusyUntil = x.workshop.BusyUntil,
+            StartBusyTime = x.workshop.BusyFrom,
+            BusyStatus = x.workshop.IsBusy,
             DistanceKM = Math.Round(x.Distance, 2)
         }).ToList();
 

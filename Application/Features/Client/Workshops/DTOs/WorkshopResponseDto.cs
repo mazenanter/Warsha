@@ -13,8 +13,8 @@ namespace Application.Features.Client.Workshops.DTOs
         public string? GoogleMapsLink { get;set; } = null;
         public TimeOnly OpeningTime { get;set; } = new TimeOnly(8,0);
         public TimeOnly ClosingTime { get;set; } = new TimeOnly(8, 0);
-        public TimeOnly StartBusyTime { get;set; } = new TimeOnly(8, 0);
-        public TimeOnly BusyDuration { get;set; } = new TimeOnly(8, 0);
+        public DateTime? StartBusyTime { get;set; }
+        public DateTime? BusyUntil { get;set; }
         public bool BusyStatus {get; set;}
         public double? DistanceKM {get; set;}
 

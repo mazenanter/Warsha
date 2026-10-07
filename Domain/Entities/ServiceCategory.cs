@@ -1,23 +1,29 @@
-﻿using Domain.Common;
+﻿﻿using Domain.Common;
 
 namespace Domain.Entities
 {
     public class ServiceCategory : BaseEntity
     {
-        public string Name { get; private set; } = default!;
+        public string NameEn { get; private set; } = default!;
+        public string NameAr { get; private set; } = default!;
         public string Icon { get; private set; } = default!;
         protected ServiceCategory() { }
 
 
-        public static ServiceCategory Create(string name,string icon)
+        public static ServiceCategory Create(string nameEn,string nameAr,string icon)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(nameEn))
             {
-                throw new DomainException("Name cannot be empty");
+                throw new DomainException("Name (English) cannot be empty");
+            }
+            if (string.IsNullOrEmpty(nameAr))
+            {
+                throw new DomainException("Name (Arabic) cannot be empty");
             }
             return new ServiceCategory
             {
-                Name = name,
+                NameEn = nameEn,
+                NameAr = nameAr,
                 Icon = icon
             };
         }

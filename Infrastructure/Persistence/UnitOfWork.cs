@@ -14,6 +14,8 @@ namespace Infrastructure.Persistence
             _context = context;
             Clients = new Repository<Client>(_context);
             Reviews = new Repository<Review>(_context);
+            Reminders = new Repository<Reminder>(_context);
+            SavedWorkshops = new Repository<SavedWorkshop>(_context);
             WorkshopServices = new Repository<WorkshopService>(_context);
             ServiceCategories = new Repository<ServiceCategory>(_context);
             Specializations = new Repository<Specialization>(_context);
@@ -26,8 +28,10 @@ namespace Infrastructure.Persistence
         public IRepository<Client> Clients { get; }
         public IRepository<Review> Reviews { get; }
         public IRepository<WorkshopService> WorkshopServices { get; }
+        public IRepository<Reminder> Reminders { get; }
         public IRepository<ServiceCategory> ServiceCategories { get; }
         public IRepository<Specialization> Specializations { get; }
+        public IRepository<SavedWorkshop> SavedWorkshops {get;}
         public IRepository<CarModel> CarModels { get; }
         public IRepository<CarBrand> CarBrands { get; }
         public IWorkshopRepository Workshops { get; }

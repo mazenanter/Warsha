@@ -5,8 +5,8 @@ namespace Application.Features.Auth.Commands.ResetPassword
 {
     public class ResetPasswordCommand : IRequest<Result>
     {
-        public string Email { get; set; }
-        public string NewPassword { get; set; }
-        public string OTP { get; set; }
+        public string Email { get; set; } = null!;
+        public string NewPassword { get; set; } = null!;
+        public string OTP { get; set; } = null!;
     }
 }

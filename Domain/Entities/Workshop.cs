@@ -29,9 +29,9 @@ namespace Domain.Entities
         public TimeOnly OpeningTime { get; private set; } = new TimeOnly(8,0);
         public TimeOnly ClosingTime { get; private set; } = new TimeOnly(8, 0);
 
-        public TimeOnly StartBusyTime { get;set; } = new TimeOnly(8, 0);
-        public TimeOnly BusyDuration { get;set; } = new TimeOnly(8, 0);
-        public bool BusyStatus {get; set;}
+        public bool IsBusy { get; private set; }
+        public DateTime? BusyFrom { get; private set; }
+        public DateTime? BusyUntil { get; private set; }
         protected Workshop() { }
 
         public static Workshop Create(int userId,string email, string name, string phone, string address)

@@ -60,9 +60,9 @@ namespace Application.Features.Client.Workshops.Queries.GetById
                 GoogleMapsLink = workshop.GoogleMapsLink,
                 OpeningTime = workshop.OpeningTime,
                 ClosingTime = workshop.ClosingTime,
-                StartBusyTime = workshop.StartBusyTime,
-                BusyDuration = workshop.BusyDuration,
-                BusyStatus = workshop.BusyStatus,
+                StartBusyTime = workshop.BusyFrom,
+                BusyUntil = workshop.BusyUntil,
+                BusyStatus = workshop.IsBusy,
                 Services = workshop.Services
                 .Where(s => s.IsVisible)
                 .Select(s => new WorkshopServiceResponseDto
@@ -70,7 +70,8 @@ namespace Application.Features.Client.Workshops.Queries.GetById
                     Id = s.Id,
                     NameEn = s.NameEn,
                     NameAr = s.NameAr,
-                    Category = s.ServiceCategory.Name,
+                    CategoryEn = s.ServiceCategory.NameEn,
+                    CategoryAr = s.ServiceCategory.NameAr,
                     Duration = s.DurationMin,
                     MinPrice = s.MinPrice,
                     MaxPrice = s.MaxPrice,

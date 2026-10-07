@@ -10,15 +10,15 @@ namespace Domain.Entities
         public decimal MaxPrice { get; private set; } 
         public int WorkshopId { get;private set; }
         public int ServiceCategoryId { get;private set; }
-        public ServiceCategory ServiceCategory { get;private set; }
-        public Workshop Workshop { get;private set; }
+        public ServiceCategory ServiceCategory { get;private set; } = null!;
+        public Workshop Workshop { get;private set; } = null!;
         public int DurationMin { get; private set; } 
         public bool IsVisible { get; private set; } = true;
         private readonly List<Offer> _offers = [];
 
         public IReadOnlyCollection<Offer> Offers => _offers;
-        public string DescriptionEn { get; private set; }
-        public string DescriptionAr { get; private set; }
+        public string DescriptionEn { get; private set; } = null!;
+        public string DescriptionAr { get; private set; } = null!;
 
         protected WorkshopService() { }
 
