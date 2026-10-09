@@ -12,12 +12,13 @@ using Application.Features.Client.Cars.Commands.AddCar;
 using Application.Features.Client.Cars.Commands.UpdateCar;
 using Application.Features.Client.Cars.Queries.GetAll;
 using Application.Features.Client.Cars.Queries.GetById;
-
+using Application.Features.Client.Profile.Commands.UpdateProfile;
+using Application.Features.Client.Profile.Queries.GetMyProfile;
 using Application.Features.Client.Reminders.Commands.AddReminder;
 using Application.Features.Client.Reminders.Commands.DeleteReminder;
 using Application.Features.Client.Reminders.Commands.UpdateReminder;
 using Application.Features.Client.Reminders.Queries.GetMyReminders;
-
+using Application.Features.Client.Reviews.Commands.AddReview;
 using Application.Features.Client.SavedWorkshops.Queries.GetSavedWorkshops;
 
 using Application.Features.Client.Workshops.Commands.SaveWorkshop;
@@ -378,6 +379,29 @@ namespace WebApi.Controllers.Api.V1
                 await Mediator.Send(
                     new MarkNotificationReadCommand(id),
                     ct));
+        }
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            var result = await Mediator.Send(new GetMyProfileQuery());
+            return HandleGenericResult(result);
+        }
+
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
+        }
+
+
+        [HttpPost("workshops/{workshopId:int}/reviews")]
+        public async Task<IActionResult> AddReview([FromRoute] int workshopId, [FromBody] AddReviewCommand command)
+        {
+            command.WorkshopId = workshopId;
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
         }
     }
 }

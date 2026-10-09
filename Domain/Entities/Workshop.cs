@@ -205,6 +205,12 @@ namespace Domain.Entities
             BusyUntil = null;
             UpdatedAt = DateTime.UtcNow;
         }
+
+        public void UpdateRating(double ratingAvg)
+        {
+            RatingAvg = Math.Round(ratingAvg, 2);
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }
     

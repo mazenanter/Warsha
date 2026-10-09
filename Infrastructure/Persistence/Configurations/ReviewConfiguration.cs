@@ -22,6 +22,8 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.Property(r => r.Comment).HasMaxLength(1000);
 
+            builder.HasIndex(r => new { r.ClientId, r.WorkshopId }).IsUnique();
+
         }
     }
 }

@@ -28,7 +28,8 @@ namespace Domain.Entities
                 WorkshopId = workshopId,
                 ClientId = clientId,
                 Rating = rating,
-                Comment = comment
+                Comment = comment,
+                CreatedAt = DateTime.UtcNow
             };
         }
 
