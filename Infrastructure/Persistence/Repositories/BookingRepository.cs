@@ -65,7 +65,8 @@ namespace Infrastructure.Persistence.Repositories
                 .Include(b => b.Items)
                 .Include(b => b.Quotes)
                 .Where(b => b.WorkshopId == workshopId &&
-                            b.BookingStatus == BookingStatus.Confirmed)
+    (b.BookingStatus == BookingStatus.PendingApproval ||
+     b.BookingStatus == BookingStatus.Confirmed))
                 .OrderByDescending(b => b.ScheduledAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

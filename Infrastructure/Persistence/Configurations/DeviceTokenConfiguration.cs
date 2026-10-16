@@ -11,7 +11,18 @@ namespace Infrastructure.Persistence.Configurations
             builder.HasKey(dt => dt.Id);
             builder.Property(dt => dt.Token).IsRequired().HasMaxLength(500);
             builder.Property(dt => dt.Platform).IsRequired().HasMaxLength(10);
-            builder.HasIndex(dt => dt.UserId).IsUnique();
+            builder.Property(dt => dt.DeviceId)
+    .IsRequired()
+    .HasMaxLength(200);
+
+            builder.HasIndex(dt => new
+            {
+                dt.UserId,
+                dt.DeviceId
+            })
+            .IsUnique();
+
+            builder.HasIndex(dt => dt.UserId);
         }
     }
 }

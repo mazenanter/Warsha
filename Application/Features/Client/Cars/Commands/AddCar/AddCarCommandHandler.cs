@@ -30,7 +30,7 @@ namespace Application.Features.Client.Cars.Commands.AddCar
                     "You already have a car with the same model and year."
                 );
             }
-            client.AddCar(request.CarModel, request.Year, null, request.ActualOdometerKm);
+            client.AddCar(request.CarModel, request.Year, request.ActualOdometerKm);
             await _unitOfWork.SaveChangesAsync();
             return Result.Success("Car added successfully.");
         }

@@ -11,7 +11,8 @@ namespace Application.Features.Auth.DTOs
 
         public string Phone { get;  set; }  = null!;
 
-        public string Address { get;  set; } = null!;
+        public string AddressEn { get;  set; } = null!;
+        public string AddressAr { get;  set; } = null!;
 
         public string Password { get; set; } = null!;
 

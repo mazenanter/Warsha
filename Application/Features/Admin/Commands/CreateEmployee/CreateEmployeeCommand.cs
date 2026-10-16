@@ -1,4 +1,5 @@
-﻿using Domain.Common;
+﻿using Application.Features.Admin.DTOs;
+using Domain.Common;
 using MediatR;
 
 namespace Application.Features.Admin.Commands.CreateEmployee
@@ -8,5 +9,5 @@ namespace Application.Features.Admin.Commands.CreateEmployee
      string Email,
      string Password,
      List<int> PermissionIds
- ) : IRequest<Result>;
+ ) : IRequest<Result<CreateAdminAndEmployeeDto>>;
 }

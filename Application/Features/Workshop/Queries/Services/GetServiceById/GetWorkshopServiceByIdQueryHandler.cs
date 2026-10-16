@@ -30,12 +30,12 @@ namespace Application.Features.Workshop.Queries.Services.GetServiceById
                 CategoryEn = workshopService.ServiceCategory.NameEn,
                 CategoryAr = workshopService.ServiceCategory.NameAr,
                 DescriptionAr = workshopService.DescriptionAr,
-                DescriptionEn = workshopService.DescriptionEn,Duration = workshopService.DurationMin,
+                DescriptionEn = workshopService.DescriptionEn,
+                Duration = workshopService.DurationMin,
                 Id = workshopService.Id,
                 IsActive = workshopService.IsVisible,
                 MaxPrice = workshopService.MaxPrice,
-                MinPrice = workshopService
-                .MinPrice,
+                MinPrice = workshopService.MinPrice,
                 NameAr = workshopService.NameAr,
                 NameEn = workshopService.NameEn
             };

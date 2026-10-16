@@ -8,7 +8,10 @@ namespace Domain.Entities
         public string Name { get; private set; } = default!;
         public string Email { get; private set; } = default!;
         public string Phone { get; private set; } = default!;
-        public string Address { get; private set; } = default!;
+        public string AddressEn { get; private set; } = default!;
+        public string AddressAr { get; private set; } = default!;
+        public string? DescriptionAr { get; private set; } = default!;
+        public string? DescriptionEn { get; private set; } = default!;
         public double Lat { get; private set; } 
         public double Lng { get; private set; }
         public double RatingAvg { get; private set; }
@@ -16,16 +19,18 @@ namespace Domain.Entities
         public bool AcceptOnlineBookings { get; private set; } = true;
         public bool ShowPricesToCustomers { get; private set; } = true;
         public bool AutoSendUpdates { get; private set; } = true;
+        public string? ImageUrl { get; private set; }
         private readonly List<WorkshopService> _services = [];
         public IReadOnlyCollection<WorkshopService> Services => _services;
-        private readonly List<WorkshopSpecialization> _specializations = [];
-        public IReadOnlyCollection<WorkshopSpecialization> Specializations => _specializations;
+        private readonly List<WorkshopCarBrand> _supportedCarBrands = [];
+
+        public IReadOnlyCollection<WorkshopCarBrand> SupportedCarBrands
+            => _supportedCarBrands;
 
         private readonly List<Offer> _offers = [];
 
         public IReadOnlyCollection<Offer> Offers => _offers;
         public bool EmailDailySummary { get; private set; } = true;
-        public string? GoogleMapsLink { get; private set; } = null;
         public TimeOnly OpeningTime { get; private set; } = new TimeOnly(8,0);
         public TimeOnly ClosingTime { get; private set; } = new TimeOnly(8, 0);
 
@@ -36,7 +41,7 @@ namespace Domain.Entities
 
         protected Workshop() { }
 
-        public static Workshop Create(int userId,string email, string name, string phone, string address)
+        public static Workshop Create(int userId,string email, string name, string phone, string addressEn,string addressAr)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new DomainException("Workshop name cannot be empty.");
@@ -44,18 +49,22 @@ namespace Domain.Entities
                 throw new DomainException("Workshop email cannot be empty.");
             if (string.IsNullOrWhiteSpace(phone))
                 throw new DomainException("Workshop phone cannot be empty.");
-            if (string.IsNullOrWhiteSpace(address))
-                throw new DomainException("Workshop address cannot be empty.");
+            if (string.IsNullOrWhiteSpace(addressEn))
+                throw new DomainException("Workshop address (English) cannot be empty.");
+            if (string.IsNullOrWhiteSpace(addressAr))
+                throw new DomainException("Workshop address (Arabic) cannot be empty.");
+           
 
             return new Workshop
             {
                 UserId = userId,
                 Name = name,
                 Phone = phone,
-                Address = address,
+                AddressEn = addressEn,
+                AddressAr = addressAr,
+               
                 Email = email,
                 RatingAvg = 0,
-
             };
         }
 
@@ -87,31 +96,25 @@ namespace Domain.Entities
             return Result.Success("Workshop added successfully");
         }
 
-        public void AddSpecialization(int specializationId)
+        public void AddSupportedCarBrand(int carBrandId)
         {
-            if (_specializations.Any(x =>
-             x.SpecializationId == specializationId))
-            {
+            if (_supportedCarBrands.Any(x => x.CarBrandId == carBrandId))
                 throw new DomainException(
-                    "Specialization already added.");
-            }
+                    "Car brand is already supported by this workshop.");
 
-            var specialization =
-                WorkshopSpecialization.Create(specializationId,this.Id);
-
-            _specializations.Add(specialization);
+            _supportedCarBrands.Add(
+                WorkshopCarBrand.Create(this.Id, carBrandId));
         }
-        public void RemoveSpecialization(int specializationId)
+        public void RemoveSupportedCarBrand(int carBrandId)
         {
-            var specialization = _specializations
-       .FirstOrDefault(x => x.SpecializationId == specializationId);
+            var item = _supportedCarBrands
+                .FirstOrDefault(x => x.CarBrandId == carBrandId);
 
-            if (specialization is null)
+            if (item is null)
                 throw new DomainException(
-                    "Specialization is not associated with this workshop.");
+                    "Car brand is not supported by this workshop.");
 
-            _specializations.Remove(specialization);
-
+            _supportedCarBrands.Remove(item);
             UpdatedAt = DateTime.UtcNow;
         }
         public void UpdateSettings(bool acceptOnlineBookings, bool showPricesToCustomers, bool autoSendUpdates, bool emailDailySummary)
@@ -123,33 +126,50 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
     
-    public void UpdateDetails(string name, string phone, string googleMapsLink, string address, double lat, double lng, TimeOnly openingTime, TimeOnly closingTime)
+    public void UpdateDetails(string name, string phone, string addressEn, string addressAr, string descriptionEn, string descriptionAr, double lat, double lng, TimeOnly openingTime, TimeOnly closingTime)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new DomainException("Workshop name cannot be empty.");
             if (string.IsNullOrWhiteSpace(phone))
                 throw new DomainException("Workshop phone cannot be empty.");
-            if (string.IsNullOrWhiteSpace(address))
-                throw new DomainException("Workshop address cannot be empty.");
+            if (string.IsNullOrWhiteSpace(addressEn))
+                throw new DomainException("Workshop address (English) cannot be empty.");
+            if (string.IsNullOrWhiteSpace(addressAr))
+                throw new DomainException("Workshop address (Arabic) cannot be empty.");
+            if (string.IsNullOrWhiteSpace(descriptionEn))
+                throw new DomainException("Workshop description (English) cannot be empty.");
+            if (string.IsNullOrWhiteSpace(descriptionAr))
+                throw new DomainException("Workshop description (Arabic) cannot be empty.");
             Name = name;
             Phone = phone;
-            GoogleMapsLink = googleMapsLink;
-            Address = address;
+            AddressEn = addressEn;
+            AddressAr = addressAr;
+            DescriptionEn = descriptionEn;
+            DescriptionAr = descriptionAr;
             Lat = lat;
             Lng = lng;
             OpeningTime = openingTime;
             ClosingTime = closingTime;
+    
             UpdatedAt = DateTime.UtcNow;
         }
+        public void UpdateImage(string imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+                throw new DomainException("Image URL cannot be empty.");
 
-        public void AddWorkshopOffer(decimal discountPercentage, DateTime startAt, DateTime endAt)
+            ImageUrl = imageUrl;
+            UpdatedAt = DateTime.UtcNow;
+        }
+        public Offer AddWorkshopOffer(decimal discountPercentage, DateTime startAt, DateTime endAt)
         {
             var offer = Offer.CreateWorkshopOffer(this.Id, discountPercentage, startAt, endAt);
 
             _offers.Add(offer);
+            return offer;
         }
 
-        public void AddServiceOffer(int serviceId, decimal discountPercentage, DateTime startAt, DateTime endsAt)
+        public Offer AddServiceOffer(int serviceId, decimal discountPercentage, DateTime startAt, DateTime endsAt)
         {
             var service = _services.FirstOrDefault(x => x.Id == serviceId);
 
@@ -163,13 +183,11 @@ namespace Domain.Entities
         endsAt);
 
             _offers.Add(offer);
+            return offer;
         }
         public bool CanAcceptBooking()
         {
             if (!IsVerified)
-                return false;
-
-            if (!AcceptOnlineBookings)
                 return false;
 
             if (IsBusy && BusyUntil.HasValue)
@@ -177,12 +195,19 @@ namespace Domain.Entities
                 if (DateTime.UtcNow >= BusyUntil.Value)
                 {
                     ClearBusy();
-                    return true;
                 }
-                return false;
+                else
+                {
+                    return false;
+                }
             }
 
             return true;
+        }
+
+        public bool CanAcceptOnlineBooking()
+        {
+            return CanAcceptBooking() && AcceptOnlineBookings;
         }
 
         public void SetBusy(DateTime from, DateTime until)

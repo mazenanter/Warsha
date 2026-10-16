@@ -18,6 +18,8 @@ namespace Infrastructure.Persistence
         public DbSet<WorkshopService> WorkshopServices { get; set; }
         public DbSet<ServiceCategory> ServiceCategories { get; set; }
         public DbSet<Permission> Permissions { get; set; }
+        public DbSet<WorkshopMonthlyActionLimit> WorkshopMonthlyActionLimits { get; set; }
+        public DbSet<WorkshopMonthlyAction> WorkshopMonthlyActions { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Car> Cars { get; set; }
@@ -44,7 +46,10 @@ namespace Infrastructure.Persistence
         public DbSet<Trip> Trips { get; set; }
         public DbSet<OdometerCorrection> OdometerCorrections { get; set; }
         public DbSet<LoyaltyExpirationConfig> LoyaltyExpirationConfigs { get; set; }
-
+        public DbSet<Reminder> Reminders { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<SavedWorkshop> SavedWorkshops { get; set; }
+        public DbSet<WorkshopCarBrand> WorkshopCarBrands { get; set; }
         public AppDbContext(DbContextOptions<AppDbContext> options, IPublisher publisher) : base(options)
         {
             _publisher = publisher;

@@ -65,8 +65,12 @@ namespace WebApi.Controllers.Api.V1
 
         [HttpPost("{carId:int}/mileage/correction")]
         public async Task<IActionResult> CorrectOdometer(
-           [FromBody] CorrectOdometerCommand command)
-            => HandleResult(await Mediator.Send(
-                command));
+    [FromRoute] int carId,
+    [FromBody] CorrectOdometerCommand command)
+        {
+            command.CarId = carId;
+
+            return HandleResult(await Mediator.Send(command));
+        }
     }
 }

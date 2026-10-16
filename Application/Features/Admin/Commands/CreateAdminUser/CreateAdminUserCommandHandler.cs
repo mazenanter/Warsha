@@ -1,10 +1,11 @@
-﻿using Application.Interfaces;
+﻿using Application.Features.Admin.DTOs;
+using Application.Interfaces;
 using Domain.Common;
 using MediatR;
 
 namespace Application.Features.Admin.Commands.CreateAdminUser
 {
-    public class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminUserCommand, Result>
+    public class CreateAdminUserCommandHandler : IRequestHandler<CreateAdminUserCommand, Result<CreateAdminAndEmployeeDto>>
     {
         private readonly IAdminService _adminService;
 
@@ -13,7 +14,7 @@ namespace Application.Features.Admin.Commands.CreateAdminUser
             _adminService = adminService;
         }
 
-        public async Task<Result> Handle(CreateAdminUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<CreateAdminAndEmployeeDto>> Handle(CreateAdminUserCommand request, CancellationToken cancellationToken)
         {
             return await _adminService.CreateAdminUser(request);
         }

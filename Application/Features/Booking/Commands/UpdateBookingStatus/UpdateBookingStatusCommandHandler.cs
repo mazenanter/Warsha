@@ -18,11 +18,13 @@ namespace Application.Features.Booking.Commands.UpdateBookingStatus
 
         public async Task<Result> Handle(UpdateBookingStatusCommand command, CancellationToken ct)
         {
-            var workshopId = _currentUser.WorkshopId!.Value;
+            var userId = _currentUser.UserId;
+            var workshop = await _unitOfWork.Workshops.FindAsync(x=>x.UserId == userId);
+            if (workshop is null) return Result.Failure("Workshop not found");
             var booking = await _unitOfWork.Bookings.GetByIdWithDetailsAsync(command.BookingId, ct);
 
             if (booking is null) return Result.Failure("Booking not found");
-            if (booking.WorkshopId != workshopId) return Result.Failure("Unauthorized");
+            if (booking.WorkshopId != workshop.Id) return Result.Failure("Unauthorized");
 
             booking.UpdateJobStatus(command.NewStatus);
             await _unitOfWork.SaveChangesAsync(ct);

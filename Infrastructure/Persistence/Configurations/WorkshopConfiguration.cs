@@ -12,7 +12,12 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(w => w.UserId).IsRequired();
             builder.Property(w => w.Name).IsRequired().HasMaxLength(150);
             builder.Property(w => w.Phone).IsRequired().HasMaxLength(20);
-            builder.Property(w => w.Address).IsRequired().HasMaxLength(300);
+            builder.Property(w => w.ImageUrl)
+    .HasMaxLength(500);
+            builder.Property(w => w.AddressEn).IsRequired().HasMaxLength(300);
+            builder.Property(w => w.AddressAr).IsRequired().HasMaxLength(300);
+            builder.Property(w => w.DescriptionEn).IsRequired().HasMaxLength(500);
+            builder.Property(w => w.DescriptionAr).IsRequired().HasMaxLength(500);
             builder.Property(w => w.RatingAvg).HasPrecision(3, 2);
             builder.HasIndex(w => w.UserId).IsUnique();
             builder.HasMany(x => x.Services)

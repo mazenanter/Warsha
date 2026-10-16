@@ -9,6 +9,10 @@ namespace Domain.Entities
         private readonly List<CarModel> _models = [];
 
         public IReadOnlyCollection<CarModel> CarModels => _models;
+        private readonly List<WorkshopCarBrand> _supportedByWorkshops = [];
+
+        public IReadOnlyCollection<WorkshopCarBrand> SupportedByWorkshops
+            => _supportedByWorkshops;
         protected CarBrand() { }
         public static CarBrand Create(string name, string? icon = null)
         {

@@ -38,7 +38,8 @@ namespace Application.Features.Booking.Commands.InitiateBooking
             if (client is null) return Result<InitiateBookingResult>.Failure("Client not found");
 
             var car = await _unitOfWork.Cars.GetByIdAsync(command.CarId, ct);
-            if (car is null || car.ClientId != client.Id)
+            if (car is null || car.ClientId != client.Id ||
+    car.IsDeleted)
                 return Result<InitiateBookingResult>.Failure("Car not found");
 
             var workshop = await _unitOfWork.Workshops
@@ -72,6 +73,7 @@ namespace Application.Features.Booking.Commands.InitiateBooking
                 command.ScheduledAt, command.PaymentType, command.CustomerNotes
                  );
 
+
             foreach (var service in services)
                 booking.AddService(service.Id, service.NameEn, service.MinPrice);
 
@@ -79,7 +81,13 @@ namespace Application.Features.Booking.Commands.InitiateBooking
      feeConfig.ClientBookingFee,
      feeConfig.CommissionPct,
      feeConfig.WorkshopCancellationFee);
-
+            var payableAmount =
+           booking.TotalAmount ;
+            if (payableAmount <= 0)
+            {
+                return Result<InitiateBookingResult>.Failure(
+                    "Booking amount must be greater than zero.");
+            }
             await _unitOfWork.Bookings.AddAsync(booking, ct);
             await _unitOfWork.SaveChangesAsync(ct);
 
@@ -90,26 +98,79 @@ namespace Application.Features.Booking.Commands.InitiateBooking
 
                 return Result<InitiateBookingResult>.Success(new InitiateBookingResult(
                     booking.Id, booking.BookingNumber, null,
-                    booking.TotalAmount, booking.ConfirmationFeeAmount, "Cash"),
+                    payableAmount, booking.ConfirmationFeeAmount, "Cash"),
                     "Booking confirmed. Pay total amount at the workshop.");
             }
+            var clientName = (client.Name ?? string.Empty)
+            .Split(
+                ' ',
+                StringSplitOptions.RemoveEmptyEntries |
+                StringSplitOptions.TrimEntries);
 
-            var paymentReq = new CreatePaymentRequest(
+            var firstName = clientName.Length > 0
+                ? clientName[0]
+                : "Warsha";
+
+            var lastName = clientName.Length > 1
+                ? string.Join(" ", clientName.Skip(1))
+                : "Client";
+
+            var paymentRequest = new CreatePaymentRequest(
                 booking.BookingNumber,
-                booking.TotalAmount + booking.ConfirmationFeeAmount,
-                client.Email ?? "noemail@warsha.app",
-                client.PhoneNumber,
-                client.Name.Split(' ').First(),
-                client.Name.Split(' ').LastOrDefault() ?? ".");
+                payableAmount,
+                string.IsNullOrWhiteSpace(client.Email)
+                    ? "noemail@warsha.app"
+                    : client.Email,
+                client.PhoneNumber ?? string.Empty,
+                firstName,
+                lastName);
 
-            var paymentRes = await _paymentGateway.CreatePaymentAsync(paymentReq, ct);
-            if (!paymentRes.IsSuccess)
+            CreatePaymentResult paymentRes;
+
+
+            try
+            {
+                paymentRes = await _paymentGateway.CreatePaymentAsync(
+                    paymentRequest,
+                    ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Payment initialization outcome is uncertain for booking {BookingNumber}",
+                    booking.BookingNumber);
+
+                return Result<InitiateBookingResult>.Failure(
+                    "Payment initialization could not be confirmed. Please check booking status before retrying.");
+            }
+
+            if (!paymentRes.IsSuccess ||
+            string.IsNullOrWhiteSpace(paymentRes.ClientSecret) ||
+            string.IsNullOrWhiteSpace(paymentRes.PaymentOrderId))
             {
                 _logger.LogError("Paymob failed for {BookingNumber}: {Error}",
                     booking.BookingNumber, paymentRes.ErrorMessage);
+                if (!string.IsNullOrWhiteSpace(paymentRes.ErrorMessage) &&
+               paymentRes.ErrorMessage.Contains(
+                   "failed",
+                   StringComparison.OrdinalIgnoreCase))
+                {
+                    booking.FailOnlinePayment(
+                        paymentRes.ErrorMessage);
+
+                    await _unitOfWork.SaveChangesAsync(ct);
+                }
+
                 return Result<InitiateBookingResult>.Failure(
                     "Payment initialization failed. Please try again.");
             }
+            booking.SetPaymentOrderId(paymentRes.PaymentOrderId);
+
             if (string.IsNullOrWhiteSpace(
                     paymentRes.PaymentOrderId))
             {
@@ -122,17 +183,17 @@ namespace Application.Features.Booking.Commands.InitiateBooking
             }
             booking.SetPaymentOrderId(paymentRes.PaymentOrderId!);
             booking.AddPendingTransaction(
-                booking.TotalAmount + booking.ConfirmationFeeAmount,
-                PaymentMethodType.Visa);
+            payableAmount,
+            PaymentMethodType.Visa);
 
             await _unitOfWork.SaveChangesAsync(ct);
 
             return Result<InitiateBookingResult>.Success(new InitiateBookingResult(
-               booking.Id,
-                    booking.BookingNumber,
-                    paymentRes.ClientSecret,
-                    booking.TotalAmount + booking.ConfirmationFeeAmount,
-                    booking.ConfirmationFeeAmount, "Online"),
+                booking.Id,
+                booking.BookingNumber,
+                paymentRes.ClientSecret,
+                payableAmount,
+                booking.ConfirmationFeeAmount, "Online"),
                 "Please complete payment to confirm your booking.");
         }
 

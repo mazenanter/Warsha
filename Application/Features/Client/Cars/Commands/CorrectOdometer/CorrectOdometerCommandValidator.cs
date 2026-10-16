@@ -6,7 +6,6 @@ namespace Application.Features.Client.Cars.Commands.CorrectOdometer
     {
         public CorrectOdometerCommandValidator()
         {
-            RuleFor(x => x.CarId).GreaterThan(0);
 
             RuleFor(x => x.OdometerKm)
                 .GreaterThanOrEqualTo(0).WithMessage("Odometer cannot be negative")

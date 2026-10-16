@@ -13,9 +13,6 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(x => x.Year)
                 .IsRequired();
 
-            builder.Property(x => x.LicensePlate)
-                .HasMaxLength(20)
-                ;
 
             builder.Property(x => x.ActualOdometerKm)
                 .IsRequired();
@@ -31,7 +28,8 @@ namespace Infrastructure.Persistence.Configurations
                 .WithMany(x => x.Cars)
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            builder.Property(x => x.IsDeleted)
+    .HasDefaultValue(false);
             builder.HasOne(x => x.CarModel)
                 .WithMany(x => x.Cars)
                 .HasForeignKey(x => x.CarModelId)

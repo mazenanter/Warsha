@@ -3,6 +3,7 @@ using Application.Interfaces.Repositories;
 using Domain.Common;
 using Infrastructure.Identity;
 using Infrastructure.Identity.Services;
+using Infrastructure.Jobs;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Services;
@@ -86,16 +87,16 @@ namespace Infrastructure
 
             services.AddHttpClient("Paymob");
 
-            //if (FirebaseAdmin.FirebaseApp.DefaultInstance == null)
-            //{
-            //    var credPath = configuration["Firebase:ServiceAccountPath"];
-            //    FirebaseAdmin.FirebaseApp.Create(new FirebaseAdmin.AppOptions
-            //    {
-            //        Credential = credPath != null
-            //            ? Google.Apis.Auth.OAuth2.GoogleCredential.FromFile(credPath)
-            //            : Google.Apis.Auth.OAuth2.GoogleCredential.GetApplicationDefault()
-            //    });
-            //}
+            if (FirebaseAdmin.FirebaseApp.DefaultInstance == null)
+            {
+                var credPath = configuration["Firebase:ServiceAccountPath"];
+                FirebaseAdmin.FirebaseApp.Create(new FirebaseAdmin.AppOptions
+                {
+                    Credential = credPath != null
+                        ? Google.Apis.Auth.OAuth2.GoogleCredential.FromFile(credPath)
+                        : Google.Apis.Auth.OAuth2.GoogleCredential.GetApplicationDefault()
+                });
+            }
 
             services.Configure<EmailSettings>(
     configuration.GetSection("EmailSettings"));
@@ -116,7 +117,7 @@ namespace Infrastructure
             services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<ICarRepository, CarRepository>();
-
+            services.AddScoped<IImageStorageService, LocalImageStorageService>();
             services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<IRewardVoucherRepository, RewardVoucherRepository>();
@@ -124,6 +125,7 @@ namespace Infrastructure
             services.AddScoped<IPaymentGatewayService, PaymobService>();
             services.AddScoped<INotificationService, FirebaseNotificationService>();
             services.AddScoped<ILoyaltyExpirationConfigRepository, LoyaltyExpirationConfigRepository>();
+            services.AddHostedService<BookingTimeoutJob>();
             return services;
         }
     }

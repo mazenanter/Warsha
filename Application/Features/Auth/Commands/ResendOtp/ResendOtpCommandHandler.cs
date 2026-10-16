@@ -28,10 +28,18 @@ namespace Application.Features.Auth.Commands.ResendOtp
                 return result;
 
             var client  = await _unitOfWork.Clients.FindAsync(c=>c.UserId == result.Data!.Id);
+            if (client == null)
+            {
+                _logger.LogWarning(
+                    "Client not found for UserId {UserId}",
+                    result.Data!.Id);
+
+                return Result<AuthResult>.Failure("Client profile not found");
+            }
             try
             {
 
-                await _emailService.SendOtpAsync(request.Email, client.Name, result.Data!.OTP);
+                await _emailService.SendOtpAsync(request.Email, client.Name, result.Data!.OTP!);
                 _logger.LogInformation($"Email sent successful To {request.Email}");
             }
             catch (Exception ex)

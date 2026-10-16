@@ -33,7 +33,8 @@ namespace Application.Features.Booking.Queries.GetBookingDetails
 
             var dto = new BookingDetailsDto(
                 booking.Id, booking.BookingNumber,
-                booking.Workshop.Name, booking.Workshop.Address,
+                booking.Workshop.Name, booking.Workshop.AddressEn,
+                booking.Workshop.AddressAr,
                 booking.Car.CarModel.CarBrand.Name, booking.Car.CarModel.Name, booking.Car.Year,
                 booking.ScheduledAt, booking.TotalAmount, booking.ConfirmationFeeAmount,
                 booking.BookingStatus.ToString(), booking.JobStatus.ToString(),

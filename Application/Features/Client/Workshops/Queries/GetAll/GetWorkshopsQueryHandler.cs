@@ -9,17 +9,37 @@ namespace Application.Features.Client.Workshops.Queries.GetAll
     public class GetWorkshopsQueryHandelr : IRequestHandler<GetWorkshopsQuery, Result<PagedResult<WorkshopResponseDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
         private const double EarthRadiusKm = 6371.0;
-        public GetWorkshopsQueryHandelr(IUnitOfWork unitOfWork)
+        public GetWorkshopsQueryHandelr(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
         public async Task<Result<PagedResult<WorkshopResponseDto>>> Handle(GetWorkshopsQuery request, CancellationToken cancellationToken)
         {
             var Query = _unitOfWork.Workshops.GetAll()
             .Where(w => w.IsVerified);
+            if (request.CarId.HasValue)
+            {
+                var car = await _unitOfWork.Cars.GetByIdForClientAsync(
+                    request.CarId.Value,
+                    _currentUserService.UserId,
+                    cancellationToken);
 
-            if(!string.IsNullOrEmpty(request.SearchTerm))
+                if (car is null)
+                {
+                    return Result<PagedResult<WorkshopResponseDto>>.Failure(
+                        "Car not found or does not belong to the current client.");
+                }
+
+                var carBrandId = car.CarModel.CarBrandId;
+
+                Query = Query.Where(w =>
+                    w.SupportedCarBrands.Any(b =>
+                        b.CarBrandId == carBrandId));
+            }
+            if (!string.IsNullOrEmpty(request.SearchTerm))
             {
                 Query = Query.Where(w => w.Name.Contains(request.SearchTerm));
             }
@@ -52,12 +72,13 @@ namespace Application.Features.Client.Workshops.Queries.GetAll
             {
                 UserId = w.Id,
                 Name = w.Name,
-                Address = w.Address,
+                AddressEn = w.AddressEn,
+                AddressAr = w.AddressAr,
+            ImageUrl = w.ImageUrl,
                 Phone = w.Phone,
                 Lat = w.Lat,
                 Lng = w.Lng,
                 RatingAvg = w.RatingAvg,
-                GoogleMapsLink = w.GoogleMapsLink,
                 OpeningTime = w.OpeningTime,
                 ClosingTime = w.ClosingTime,
                 DistanceKM = null
@@ -97,16 +118,18 @@ namespace Application.Features.Client.Workshops.Queries.GetAll
 
 
         var page = WithDistance.Skip((response.PageNumber - 1) * response.PageSize)
+                .Take(response.PageSize)
         .Select(x => new WorkshopResponseDto
         {
             UserId = x.workshop.Id,
             Name = x.workshop.Name,
-            Address = x.workshop.Address,
+            AddressEn = x.workshop.AddressEn,
+            AddressAr = x.workshop.AddressAr,
             Phone = x.workshop.Phone,
             Lat = x.workshop.Lat,
             Lng = x.workshop.Lng,
+            ImageUrl = x.workshop.ImageUrl,
             RatingAvg = x.workshop.RatingAvg,
-            GoogleMapsLink = x.workshop.GoogleMapsLink,
             OpeningTime = x.workshop.OpeningTime,
             ClosingTime = x.workshop.ClosingTime,
             BusyUntil = x.workshop.BusyUntil,

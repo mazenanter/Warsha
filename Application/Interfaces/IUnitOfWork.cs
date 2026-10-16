@@ -6,9 +6,16 @@ namespace Application.Interfaces
 {
     public interface IUnitOfWork
     {
+<<<<<<< HEAD
         public IRepository<Client> Clients { get;}
         public IRepository<SavedWorkshop> SavedWorkshops { get; }
         public IRepository<Reminder> Reminders { get; }
+=======
+
+        public IRepository<SavedWorkshop> SavedWorkshops { get; }
+        public IRepository<Reminder> Reminders { get; }
+        public IRepository<Offer> Offers { get; }
+>>>>>>> 8849e011a858a3a8c7b288408309aeada6ba21b8
 
         public IRepository<Review> Reviews { get;}
         public IWorkshopRepository Workshops { get;}
@@ -37,8 +44,9 @@ namespace Application.Interfaces
         public IRepository<SubscriptionPlan> SubscriptionPlans { get;}
         public IRepository<WorkshopSubscription> WorkshopSubscriptions { get;}
         public IRepository<BookingService> BookingItems { get;}
-        public IRepository<Specialization> Specializations { get;}
         public IPermissionRepository Permissions { get; }
+        public IWorkshopMonthlyActionLimitRepository WorkshopMonthlyActionLimits { get; }
+        public IWorkshopMonthlyActionRepository WorkshopMonthlyActions { get; }
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
     }

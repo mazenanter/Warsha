@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Common;
+using Domain.Entities;
 using MediatR;
 
 namespace Application.Features.Booking.Commands.DeviceToken
@@ -18,13 +19,32 @@ namespace Application.Features.Booking.Commands.DeviceToken
         public async Task<Result> Handle(RegisterDeviceTokenCommand command, CancellationToken ct)
         {
             var userId = _currentUser.UserId;
-            var existing = await _unitOfWork.DeviceTokens.GetByUserIdAsync(userId, ct);
+
+            var existing = await _unitOfWork.DeviceTokens
+                .GetByUserAndDeviceAsync(
+                    userId,
+                    command.DeviceId,
+                    ct);
 
             if (existing != null)
-                existing.Update(command.Token);
+            {
+                existing.Update(
+                    command.Token,
+                    command.Platform);
+            }
             else
+            {
+                var deviceToken = Domain.Entities.DeviceToken.Create(
+       userId,
+       command.Token,
+       command.Platform,
+       command.DeviceId);
+
+
                 await _unitOfWork.DeviceTokens.AddAsync(
-                    Domain.Entities.DeviceToken.Create(userId, command.Token, command.Platform), ct);
+                    deviceToken,
+                    ct);
+            }
 
             await _unitOfWork.SaveChangesAsync(ct);
             return Result.Success("Device token registered");

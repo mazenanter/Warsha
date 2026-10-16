@@ -10,6 +10,13 @@ namespace Application.Interfaces.Repositories
    public interface  ICarRepository : IRepository<Car>
     {
         Task<Car?> GetByModelAndYearAsync(int model, int year, CancellationToken ct = default);
+        Task<IEnumerable<Car>> GetByClientIdAsync(
+    int clientId,
+    CancellationToken ct = default);
+        Task<Car?> GetByIdForClientAsync(
+    int carId,
+    int userId,
+    CancellationToken ct = default);
         Task<IEnumerable<Car>> GetAllCars( CancellationToken ct = default);
         Task<Car?> GetCarById(int id, CancellationToken ct = default);
         Task<Car?> GetByIdWithCorrectionsAsync(int id, CancellationToken ct = default);

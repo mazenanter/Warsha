@@ -8,20 +8,26 @@ namespace Application.Features.Client.Cars.Queries.GetAll
     public class GetAllCarsQueryHandler : IRequestHandler<GetAllCarsQuery, Result<List<CarResponseDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetAllCarsQueryHandler(IUnitOfWork unitOfWork)
+        public GetAllCarsQueryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<List<CarResponseDto>>> Handle(GetAllCarsQuery request, CancellationToken cancellationToken)
         {
-            var cars = await _unitOfWork.Cars.GetAllCars();
+           var userId = _currentUserService.UserId;
+            var client = await _unitOfWork.Clients.FindAsync(x => x.UserId == userId);
 
-            if (cars == null)
-            {
-                return Result<List<CarResponseDto>>.Failure("No cars found.");
-            }
+            if (client is null)
+                return Result<List<CarResponseDto>>.Failure(
+                    "Client profile not found.");
+
+            var cars = await _unitOfWork.Cars.GetByClientIdAsync(
+                client.Id,
+                cancellationToken);
 
             var carDtos = cars.Select(car => new CarResponseDto
             {
@@ -31,7 +37,10 @@ namespace Application.Features.Client.Cars.Queries.GetAll
                 Year = car.Year,
                 ActualOdometerKm = car.ActualOdometerKm
             }).ToList();
-            return Result<List<CarResponseDto>>.Success(carDtos,"Cars retrieved successfully.");
+
+            return Result<List<CarResponseDto>>.Success(
+                carDtos,
+                "Cars retrieved successfully.");
         }
     }
 }

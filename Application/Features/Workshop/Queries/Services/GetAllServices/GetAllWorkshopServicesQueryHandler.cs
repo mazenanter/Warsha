@@ -11,16 +11,22 @@ namespace Application.Features.Workshop.Queries.Services.GetAllServices
     public class GetAllWorkshopServicesQueryHandler : IRequestHandler<GetAllWorkshopServicesQuery, Result<PagedResult<WorkshopServiceResponseDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetAllWorkshopServicesQueryHandler(IUnitOfWork unitOfWork)
+        public GetAllWorkshopServicesQueryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<PagedResult<WorkshopServiceResponseDto>>> Handle(GetAllWorkshopServicesQuery request, CancellationToken cancellationToken)
         {
+            var userId = _currentUserService.UserId;
+            var workshop = await _unitOfWork.Workshops.FindAsync(x => x.UserId == userId);
+            if (workshop is null) return Result<PagedResult<WorkshopServiceResponseDto>>.Failure("Workshop not found");
+
             IQueryable<WorkshopService> query = _unitOfWork.WorkshopServices
-    .GetAll()
+    .GetAll().Where(x => x.WorkshopId == workshop.Id)
     .Include(x => x.ServiceCategory);
 
 
@@ -43,7 +49,9 @@ namespace Application.Features.Workshop.Queries.Services.GetAllServices
                   NameEn = je.NameEn,
                   MaxPrice = je.MaxPrice,
                   MinPrice = je.MinPrice,
-                  CategoryEn = je.ServiceCategory.NameEn,
+                  DescriptionAr = je.DescriptionAr,
+                    DescriptionEn = je.DescriptionEn,
+                    CategoryEn = je.ServiceCategory.NameEn,
                   CategoryAr = je.ServiceCategory.NameAr,
                   Duration = je.DurationMin,
                   IsActive = je.IsVisible

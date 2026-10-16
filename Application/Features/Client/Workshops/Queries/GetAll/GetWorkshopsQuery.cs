@@ -10,6 +10,7 @@ namespace Application.Features.Client.Workshops.Queries.GetAll
         public int PageNumber { get; set; } = 1;
         public double Lat { get;   set; } 
         public double Lng { get;   set; }
+        public int? CarId { get; set; }
         public string? SearchTerm  { get;   set; }
         public bool TopRated {get;   set; }
         public bool NearMe {get;   set; }

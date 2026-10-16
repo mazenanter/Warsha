@@ -20,7 +20,8 @@ namespace Application.Features.Auth.Commands.WorkshopRegister
             {
                 Name = request.Name,
                 Phone = request.Phone,
-                Address = request.Address,
+                AddressEn = request.AddressEn,
+                AddressAr = request.AddressAr,
                 Password = request.Password,
          Email = request.Email,
                 
