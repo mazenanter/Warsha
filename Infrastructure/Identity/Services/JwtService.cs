@@ -60,7 +60,7 @@ namespace Infrastructure.Identity.Services
                  issuer: _config["JwtSettings:Issuer"],
                 audience: _config["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(10),
+                expires: DateTime.UtcNow.AddMinutes(60),
                 signingCredentials: credentials
 
             );

@@ -2,12 +2,14 @@
 {
     public enum BookingStatus
     {
-        Pending = 1,
-        Confirmed = 2,
-        Rejected = 3,
-        Cancelled = 4,
-        Completed = 5,
-        Failed = 6
+        PendingPaymentAuth = 1,
+        PendingApproval = 2,
+        PendingCapture = 3,
+        Confirmed = 4,
+        Rejected = 5,
+        Cancelled = 6,
+        Completed = 7,
+        PaymentFailed = 8
 
     }
 }

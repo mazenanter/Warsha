@@ -1,6 +1,7 @@
 ﻿using Application.Features.Admin.Commands.AssignUserPermissions;
 using Application.Features.Admin.Commands.CreateAdminUser;
 using Application.Features.Admin.Commands.CreateEmployee;
+using Application.Features.Admin.DTOs;
 using Application.Interfaces;
 using Domain.Common;
 using Domain.Constants;
@@ -45,33 +46,33 @@ namespace Infrastructure.Identity.Services
             return Result.Success("Permissions updated successfully");
         }
 
-        public async Task<Result> CreateAdminUser(CreateAdminUserCommand request)
+        public async Task<Result<CreateAdminAndEmployeeDto>> CreateAdminUser(CreateAdminUserCommand request)
         {
             int userId = _currentUserService.UserId;
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
             if (user is null)
-                return Result.Failure("User not found");
+                return Result<CreateAdminAndEmployeeDto>.Failure("User not found");
 
             var isSuperAdmin = await _userManager.IsInRoleAsync(
                 user,
                 Roles.SuperAdmin);
 
             if (!isSuperAdmin)
-                return Result.Failure("You are not authorized to create an admin");
+                return Result<CreateAdminAndEmployeeDto>.Failure("You are not authorized to create an admin");
             var permissions = await _unitOfWork.Permissions
             .GetByIdsAsync(request.PermissionIds);
 
             if (permissions.Count() != request.PermissionIds.Distinct().Count())
-                return Result.Failure("One or more permission IDs are invalid");
+                return Result<CreateAdminAndEmployeeDto>.Failure("One or more permission IDs are invalid");
 
             var existing = await _userManager.FindByEmailAsync(request.Email);
             if (existing != null)
-                return Result.Failure("Email already exists");
+                return Result<CreateAdminAndEmployeeDto>.Failure("Email already exists");
             
             var appUser = new ApplicationUser
             {
-                UserName = request.Email,
+                UserName = request.Name.Replace(" ", "").ToLower(),
                 Email = request.Email,
                 UserType = UserType.ADMIN,
                 IsActive = true,
@@ -81,7 +82,7 @@ namespace Infrastructure.Identity.Services
             var result = await _userManager.CreateAsync(appUser, request.Password);
 
             if (!result.Succeeded)
-                return Result.Failure(
+                return Result<CreateAdminAndEmployeeDto>.Failure(
                     result.Errors.Select(e => e.Description).ToList(),
                     "User creation failed");
 
@@ -91,7 +92,7 @@ namespace Infrastructure.Identity.Services
 
             if (!roleResult.Succeeded)
             {
-                return Result.Failure(
+                return Result<CreateAdminAndEmployeeDto>.Failure(
                     roleResult.Errors.Select(e => e.Description).ToList(),
                     "Failed to assign admin role");
             }
@@ -101,16 +102,16 @@ namespace Infrastructure.Identity.Services
 
             await _unitOfWork.SaveChangesAsync();
 
-            return Result.Success("Admin user created successfully");
+            return Result<CreateAdminAndEmployeeDto>.Success(new CreateAdminAndEmployeeDto { Id = appUser.Id, Name = request.Name }, "Admin user created successfully");
         }
 
-        public async Task<Result> CreateEmployee(CreateEmployeeCommand request)
+        public async Task<Result<CreateAdminAndEmployeeDto>> CreateEmployee(CreateEmployeeCommand request)
         {
             int userId = _currentUserService.UserId;
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
             if (user is null)
-                return Result.Failure("User not found");
+                return Result<CreateAdminAndEmployeeDto>.Failure("User not found");
 
             var isSuperAdmin = await _userManager.IsInRoleAsync(
                 user,
@@ -119,11 +120,11 @@ namespace Infrastructure.Identity.Services
             .GetByIdsAsync(request.PermissionIds);
 
             if (permissions.Count() != request.PermissionIds.Distinct().Count())
-                return Result.Failure("One or more permission IDs are invalid");
+                return Result<CreateAdminAndEmployeeDto>.Failure("One or more permission IDs are invalid");
 
             var existing = await _userManager.FindByEmailAsync(request.Email);
             if (existing != null)
-                return Result.Failure("Email already exists");
+                return Result<CreateAdminAndEmployeeDto>.Failure("Email already exists");
             if (!isSuperAdmin)
             {
                 var adminPermissions = _unitOfWork.Permissions
@@ -141,14 +142,14 @@ namespace Infrastructure.Identity.Services
                     var modules = string.Join(", ",
                         unauthorizedPermissions.Select(p => p.Module).Distinct());
 
-                    return Result.Failure(
+                    return Result<CreateAdminAndEmployeeDto>.Failure(
                         $"You don't have access to assign permissions for: {modules}");
                 }
             }
                 
             var appUser = new ApplicationUser
             {
-                UserName = request.Email,
+                UserName = request.Name.Replace(" ", "").ToLower(),
                 Email = request.Email,
                 UserType = UserType.EMPLOYEE,
                 IsActive = true,
@@ -157,7 +158,7 @@ namespace Infrastructure.Identity.Services
 
             var result = await _userManager.CreateAsync(appUser, request.Password);
             if (!result.Succeeded)
-                return Result.Failure(
+                return Result<CreateAdminAndEmployeeDto>.Failure(
                     result.Errors.Select(e => e.Description).ToList(),
                     "Employee creation failed");
 
@@ -168,7 +169,7 @@ namespace Infrastructure.Identity.Services
 
             await _unitOfWork.SaveChangesAsync();
 
-            return Result.Success("Employee created successfully");
+            return Result<CreateAdminAndEmployeeDto>.Success(new CreateAdminAndEmployeeDto { Id = appUser.Id, Name = request.Name }, "Employee created successfully");
         }
     }
 }

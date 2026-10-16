@@ -30,18 +30,30 @@ namespace Domain.Entities
 
         public void MarkPaid()
         {
+            if (Status != BookingFeeStatus.Pending)
+                throw new DomainException(
+                    "Only pending fees can be marked as paid.");
+
             Status = BookingFeeStatus.Paid;
             PaidAt = DateTime.UtcNow;
         }
 
         public void MarkRefunded()
         {
+            if (Status != BookingFeeStatus.Paid)
+                throw new DomainException(
+                    "Only paid fees can be refunded.");
+
             Status = BookingFeeStatus.Refunded;
             PaidAt = DateTime.UtcNow;
         }
 
         public void Waive()
         {
+            if (Status != BookingFeeStatus.Pending)
+                throw new DomainException(
+                    "Only pending fees can be waived.");
+
             Status = BookingFeeStatus.Waived;
             PaidAt = DateTime.UtcNow;
         }

@@ -32,8 +32,21 @@ namespace Application.Features.Workshop.Commands.Services.UpdateWorkshopService
                 _logger.LogWarning("Service Category with id: {ServiceCategoryId} not found", request.ServiceCategoryId);
                 return Result.Failure($"Service Category with id: {request.ServiceCategoryId} not found");
             }
-            var workshopId = _currentUserService.WorkshopId;
-            var nameExist = await _unitOfWork.WorkshopServices.FindAsync(x => (x.NameEn == request.NameEn && x.WorkshopId == workshopId) || x.NameAr == request.NameAr && x.WorkshopId == workshopId);
+            var userId = _currentUserService.UserId;
+            var workshop = await _unitOfWork.Workshops.FindAsync(x => x.UserId == userId);
+            if(workshop is null)
+            {
+                _logger.LogWarning("Workshop not found for user with id: {UserId}", userId);
+                return Result.Failure("Workshop not found");
+            }
+            if (workshopService.WorkshopId != workshop.Id)
+                return Result.Failure("Service not found");
+            var nameExist = await _unitOfWork.WorkshopServices.FindAsync(x => x.WorkshopId == workshop.Id
+         && x.Id != request.WorkshopServiceId
+         && (
+             x.NameEn == request.NameEn
+             || x.NameAr == request.NameAr
+         ));
             if(nameExist is not null)
             {
                 _logger.LogWarning("Workshop service with this name is already exist");

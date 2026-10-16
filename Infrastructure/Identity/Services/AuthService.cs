@@ -43,7 +43,7 @@ namespace Infrastructure.Identity.Services
 
                 }
 
-
+              
 
                 var newOtp = _otpService.GenerateOtp();
 
@@ -54,7 +54,7 @@ namespace Infrastructure.Identity.Services
 
                 return Result<AuthResult>.Success(new AuthResult
                 {
-                    Id = user.Id,
+                  //  Id = user.Id,
                     CanResendOtp = true,
                     OTP = newOtp
                 }, "Verification code sent again");
@@ -211,7 +211,7 @@ namespace Infrastructure.Identity.Services
             }
             rT.Revoke();
             var roleList = await _userManager.GetRolesAsync(user);
-            var accessToken = _jwtService.GenerateAccessToken(user.Id, user.Email!, roleList);
+            var accessToken = _jwtService.GenerateAccessToken(user.Id, user.Email!, roleList,clientId: clientId, workshopId: workshopId);
             var newRefreshToken = _jwtService.GenerateRefreshToken();
             user.RefreshToken = newRefreshToken.Token;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
@@ -221,7 +221,7 @@ namespace Infrastructure.Identity.Services
 
             var authResult = new AuthResult
             {
-                Id = user.Id,
+                Id =user.UserType == UserType.CLIENT ? clientId :  workshopId,
                 Email = user.Email,
                 AccessToken = accessToken,
                 RefreshToken = newRefreshToken.Token,
@@ -391,7 +391,7 @@ namespace Infrastructure.Identity.Services
         //    {
         //        throw new ValidationException("Closing time format is invalid.");
         //    }
-            var newWorkshop = Workshop.Create(appUser.Id,registerRequest.Email, registerRequest.Name, registerRequest.Phone, registerRequest.Address);
+            var newWorkshop = Workshop.Create(appUser.Id,registerRequest.Email, registerRequest.Name, registerRequest.Phone, registerRequest.AddressEn,registerRequest.AddressAr);
             await _unitOfWork.Workshops.AddAsync(newWorkshop);
             await _unitOfWork.SaveChangesAsync();
            
@@ -504,7 +504,7 @@ namespace Infrastructure.Identity.Services
                 AccessToken = accessToken,
                 Name = user.UserName,
                 RefreshToken = refreshTokenValue,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+                ExpiresAt = DateTime.UtcNow.AddMinutes(10)
             }, "Login successful");
         }
     }

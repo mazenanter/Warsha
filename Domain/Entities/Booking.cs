@@ -20,14 +20,15 @@ namespace Domain.Entities
         public decimal WorkshopCancellationFee { get; private set; }
         public PaymentType PaymentType { get;private set; }
         public string? PaymentOrderId { get; private set; }
-
-        public BookingStatus BookingStatus { get; private set; } = BookingStatus.Pending;
+        public decimal ServicesAmount { get; private set; }
+        public BookingStatus BookingStatus { get; private set; }
         public string? CustomerNotes { get; private set; }
         public DateTime? ConfirmedAt { get; private set; }
         public DateTime? CompletedAt { get; private set; }
         public DateTime? CancelledAt { get; private set; }
         public string? CancellationReason { get; private set; }
         public JobStatus JobStatus { get; private set; } = JobStatus.New;
+        public DateTime? ResponseDeadline { get; private set; }
         private readonly List<BookingService> _items = [];
         public IReadOnlyCollection<BookingService> Items => _items;
         private readonly List<Quote> _quotes = [];
@@ -75,10 +76,14 @@ namespace Domain.Entities
                 CustomerNotes = customerNotes
             };
 
-            if (paymentType == PaymentType.CashOnDelivery)
+            if (paymentType == PaymentType.Online)
             {
-                booking.BookingStatus = BookingStatus.Confirmed;
-                booking.ConfirmedAt = DateTime.UtcNow;
+                booking.BookingStatus = BookingStatus.PendingPaymentAuth;
+            }
+            else
+            {
+                booking.BookingStatus = BookingStatus.PendingApproval;
+                booking.ResponseDeadline = DateTime.UtcNow.AddMinutes(5);
             }
 
             booking.AddDomainEvent(new BookingCreatedEvent(
@@ -89,9 +94,24 @@ namespace Domain.Entities
 
         public void AddService(int workshopServiceId, string serviceName, decimal price)
         {
-            var item = BookingService.Create(workshopServiceId, serviceName, price);
-            _items.Add(item);
-            TotalAmount += price;
+            if (BookingStatus != BookingStatus.PendingPaymentAuth &&
+        BookingStatus != BookingStatus.PendingApproval)
+            {
+                throw new DomainException(
+                    "Services cannot be modified in the current booking state.");
+            }
+
+            var service = BookingService.Create(
+                workshopServiceId,
+                serviceName,
+                price);
+
+            _items.Add(service);
+
+            ServicesAmount += price;
+            TotalAmount = ServicesAmount + ConfirmationFeeAmount;
+
+            UpdatedAt = DateTime.UtcNow;
         }
         public void SetPlatformFees(
     decimal confirmationFeePct,
@@ -100,23 +120,30 @@ namespace Domain.Entities
         {
             if (confirmationFeePct < 0 || confirmationFeePct > 100)
                 throw new DomainException(
-                    "Confirmation fee percentage must be between 0 and 100");
+                    "Confirmation fee percentage must be between 0 and 100.");
 
             if (commissionPct < 0 || commissionPct > 100)
                 throw new DomainException(
-                    "Commission must be between 0 and 100");
+                    "Commission percentage must be between 0 and 100.");
 
             if (workshopCancellationFee < 0)
                 throw new DomainException(
-                    "Cancellation fee cannot be negative");
+                    "Workshop cancellation fee cannot be negative.");
 
-            ConfirmationFeeAmount =
-                Math.Round(TotalAmount * confirmationFeePct / 100, 2);
+            ConfirmationFeeAmount = Math.Round(
+                ServicesAmount * confirmationFeePct / 100m,
+                2,
+                MidpointRounding.AwayFromZero);
 
-            CommissionAmount =
-                Math.Round(TotalAmount * commissionPct / 100, 2);
+            CommissionAmount = Math.Round(
+                ServicesAmount * commissionPct / 100m,
+                2,
+                MidpointRounding.AwayFromZero);
+
+            TotalAmount = ServicesAmount + ConfirmationFeeAmount;
 
             WorkshopCancellationFee = workshopCancellationFee;
+            UpdatedAt = DateTime.UtcNow;
         }
         //public void SetCommission(decimal commissionPct, decimal workshopCancellationFee)
         //{
@@ -134,83 +161,391 @@ namespace Domain.Entities
 
         public PaymentTransaction AddPendingTransaction(decimal amount, PaymentMethodType method)
         {
+            if (PaymentType != PaymentType.Online)
+                throw new DomainException(
+                    "Cash bookings cannot create online payment transactions.");
+
+            if (_paymentTransactions.Any(t =>
+                    t.Status is PaymentTransactionStatus.Pending
+                        or PaymentTransactionStatus.Authorized
+                        or PaymentTransactionStatus.Captured))
+            {
+                throw new DomainException(
+                    "An active payment transaction already exists.");
+            }
             var transaction = PaymentTransaction.CreatePending(Id, amount, method);
             _paymentTransactions.Add(transaction);
             return transaction;
         }
-        public void ConfirmOnlinePayment(string providerReference)
+
+        public void MarkAuthorizationSucceeded(string authorizationId)
         {
             if (PaymentType != PaymentType.Online)
-                throw new DomainException("This booking is not an online payment booking");
+                throw new DomainException(
+                    "This booking does not use online payment.");
 
-            if (BookingStatus != BookingStatus.Pending)
-                throw new DomainException("Booking is not awaiting payment");
+            if (BookingStatus != BookingStatus.PendingPaymentAuth)
+                throw new DomainException(
+                    "Booking is not awaiting payment authorization.");
 
-            var pendingTx = _paymentTransactions
-                .FirstOrDefault(t => t.Status == PaymentTransactionStatus.Pending)
-                ?? throw new DomainException("No pending transaction found");
+            var transaction = _paymentTransactions
+                .FirstOrDefault(t =>
+                    t.Status == PaymentTransactionStatus.Pending)
+                ?? throw new DomainException(
+                    "No pending payment transaction found.");
 
-            pendingTx.MarkSuccessful(providerReference);
+            transaction.MarkAuthorized(authorizationId);
+
+            BookingStatus = BookingStatus.PendingApproval;
+            ResponseDeadline = DateTime.UtcNow.AddMinutes(5);
+            UpdatedAt = DateTime.UtcNow;
+            AddDomainEvent(new BookingAuthSucceededEvent(
+      Id, WorkshopId, ClientId, authorizationId));
+        }
+      
+        public void FailOnlinePayment(string reason)
+        {
+            if (BookingStatus != BookingStatus.PendingPaymentAuth)
+                throw new DomainException(
+                    "Booking is not awaiting payment authorization.");
+
+            var transaction = _paymentTransactions.FirstOrDefault(
+                t => t.Status == PaymentTransactionStatus.Pending);
+
+            transaction?.MarkFailed(reason);
+
+            BookingStatus = BookingStatus.PaymentFailed;
+            UpdatedAt = DateTime.UtcNow;
+
+            AddDomainEvent(new BookingPaymentFailedEvent(Id, ClientId));
+        }
+
+        public string? AcceptByWorkshop()
+        {
+            EnsureWorkshopCanRespond();
+
+            if (PaymentType == PaymentType.Online)
+            {
+                var transaction = _paymentTransactions.FirstOrDefault(
+                    t => t.Status == PaymentTransactionStatus.Authorized)
+                    ?? throw new DomainException(
+                        "No authorized payment was found.");
+
+                if (string.IsNullOrWhiteSpace(transaction.AuthorizationId))
+                    throw new DomainException(
+                        "Authorization ID is missing.");
+
+          
+                BookingStatus = BookingStatus.PendingCapture;
+                UpdatedAt = DateTime.UtcNow;
+
+                return transaction.AuthorizationId;
+            }
 
             BookingStatus = BookingStatus.Confirmed;
             ConfirmedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
 
+            RegisterCashFees();
 
-            var confirmFee = BookingFee.Create(Id, BookingFeeType.ClientConfirmation, ConfirmationFeeAmount);
-            _fees.Add(confirmFee);
-            confirmFee.MarkPaid();
+            AddDomainEvent(new BookingAcceptedByWorkshopEvent(
+                Id,
+                WorkshopId,
+                ClientId,
+                TotalAmount,
+                CommissionAmount));
 
-            _fees.Add(BookingFee.Create(Id, BookingFeeType.WorkshopCommission, CommissionAmount));
-
-            var payoutAmount = TotalAmount - CommissionAmount;
-            _fees.Add(BookingFee.Create(Id, BookingFeeType.WorkshopPayout, payoutAmount));
-
-            AddDomainEvent(new BookingConfirmedEvent(
-                Id, WorkshopId, ClientId, TotalAmount, CommissionAmount));
+            return null;
         }
-        public void FailOnlinePayment(string reason)
+        public void ConfirmAfterCapture(string captureReference)
         {
-            if (BookingStatus != BookingStatus.Pending)
-                throw new DomainException("Booking is not awaiting payment");
+            if (PaymentType != PaymentType.Online)
+                throw new DomainException(
+                    "Only online bookings can be confirmed after capture.");
 
-            var pendingTx = _paymentTransactions
-                .FirstOrDefault(t => t.Status == PaymentTransactionStatus.Pending);
+            if (BookingStatus != BookingStatus.PendingCapture)
+                throw new DomainException(
+                    "Booking is not awaiting payment capture.");
 
-            pendingTx?.MarkFailed(reason);
+            if (string.IsNullOrWhiteSpace(captureReference))
+                throw new DomainException(
+                    "Capture reference cannot be empty.");
 
-            BookingStatus = BookingStatus.Failed;
-            AddDomainEvent(new BookingPaymentFailedEvent(Id, ClientId));
+            var transaction = _paymentTransactions.FirstOrDefault(
+                t => t.Status == PaymentTransactionStatus.Authorized)
+                ?? throw new DomainException(
+                    "No authorized transaction was found.");
+
+            transaction.MarkCaptured(captureReference);
+
+            BookingStatus = BookingStatus.Confirmed;
+            ConfirmedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
+
+            RegisterOnlineFees();
+
+            AddDomainEvent(new BookingAcceptedByWorkshopEvent(
+                Id,
+                WorkshopId,
+                ClientId,
+                TotalAmount,
+                CommissionAmount));
         }
+        private void RegisterOnlineFees()
+        {
+            AddFeeIfPositive(
+                BookingFeeType.ClientConfirmation,
+                ConfirmationFeeAmount,
+                markPaid: true);
+
+            AddFeeIfPositive(
+                BookingFeeType.WorkshopCommission,
+                CommissionAmount);
+
+            AddFeeIfPositive(
+                BookingFeeType.WorkshopPayout,
+                TotalAmount - CommissionAmount);
+        }
+
         public void RegisterCashFees()
         {
-            if (PaymentType != PaymentType.CashOnDelivery)
-                throw new DomainException("This is not a cash booking");
-            _fees.Add(BookingFee.Create(Id, BookingFeeType.ClientConfirmation, ConfirmationFeeAmount));
-            _fees.Add(BookingFee.Create(Id, BookingFeeType.WorkshopCommission, CommissionAmount));
+            if (PaymentType == PaymentType.Online)
+                throw new DomainException(
+                    "This is not a cash booking.");
+
+            if (BookingStatus != BookingStatus.Confirmed)
+                throw new DomainException(
+                    "Cash fees can only be registered for a confirmed booking.");
+
+            AddFeeIfPositive(
+                BookingFeeType.ClientConfirmation,
+                ConfirmationFeeAmount);
+
+            AddFeeIfPositive(
+                BookingFeeType.WorkshopCommission,
+                CommissionAmount);
         }
-       
-        public void CancelByWorkshop(string? reason = null)
+        private void AddFeeIfPositive(
+         BookingFeeType feeType,
+         decimal amount,
+         bool markPaid = false)
         {
-            if (BookingStatus is BookingStatus.Completed or BookingStatus.Cancelled)
-                throw new DomainException("Cannot cancel this booking");
+            if (amount <= 0)
+                return;
+
+            if (_fees.Any(f => f.FeeType == feeType))
+                return;
+
+            var fee = BookingFee.Create(Id, feeType, amount);
+
+            if (markPaid)
+                fee.MarkPaid();
+
+            _fees.Add(fee);
+        }
+        public string? RejectByWorkshop(
+    string? reason,
+    WorkshopActionDecision decision)
+        {
+            EnsureWorkshopCanRespond();
+
+            var authorizationId = GetAuthorizedPaymentId();
+
+            BookingStatus = BookingStatus.Rejected;
+            CancelledAt = DateTime.UtcNow;
+            CancellationReason = reason;
+            UpdatedAt = DateTime.UtcNow;
+
+            ApplyWorkshopPenalty(decision);
+
+            AddDomainEvent(new BookingRejectedByWorkshopEvent(
+                Id,
+                ClientId,
+                WorkshopId,
+                decision.PenaltyApplied,
+                decision.PenaltyAmount));
+
+            return authorizationId;
+        }
+
+        public string? AutoRejectDueToTimeout(
+            WorkshopActionDecision decision)
+        {
+            if (BookingStatus != BookingStatus.PendingApproval)
+                return null;
+
+            if (ResponseDeadline is null ||
+                DateTime.UtcNow < ResponseDeadline.Value)
+            {
+                throw new DomainException(
+                    "The workshop response deadline has not expired.");
+            }
+
+            var authorizationId = GetAuthorizedPaymentId();
+
+            BookingStatus = BookingStatus.Rejected;
+            CancelledAt = DateTime.UtcNow;
+            CancellationReason =
+                "Workshop did not respond within the allowed time.";
+
+            UpdatedAt = DateTime.UtcNow;
+
+            ApplyWorkshopPenalty(decision);
+
+            AddDomainEvent(new BookingRejectedByWorkshopEvent(
+                Id,
+                ClientId,
+                WorkshopId,
+                decision.PenaltyApplied,
+                decision.PenaltyAmount));
+
+            return authorizationId;
+        }
+
+        private void EnsureWorkshopCanRespond()
+        {
+            if (BookingStatus != BookingStatus.PendingApproval)
+                throw new DomainException(
+                    "Booking is not awaiting workshop approval.");
+
+            if (ResponseDeadline is null ||
+                DateTime.UtcNow >= ResponseDeadline.Value)
+            {
+                throw new DomainException(
+                    "The workshop response deadline has expired.");
+            }
+        }
+        private string? GetAuthorizedPaymentId()
+        {
+            if (PaymentType != PaymentType.Online)
+                return null;
+
+            var transaction = _paymentTransactions.FirstOrDefault(
+                t => t.Status == PaymentTransactionStatus.Authorized)
+                ?? throw new DomainException(
+                    "No authorized payment was found.");
+
+            if (string.IsNullOrWhiteSpace(transaction.AuthorizationId))
+                throw new DomainException(
+                    "Authorization ID is missing.");
+
+            return transaction.AuthorizationId;
+        }
+        private void ApplyWorkshopPenalty(
+    WorkshopActionDecision decision)
+        {
+            if (!decision.PenaltyApplied)
+                return;
+
+            if (decision.PenaltyAmount <= 0)
+                throw new DomainException(
+                    "Penalty amount must be positive.");
+
+            AddFeeIfPositive(
+                BookingFeeType.WorkshopCancellationPenalty,
+                decision.PenaltyAmount);
+        }
+        public void MarkVoided(string authorizationId)
+        {
+            var transaction = _paymentTransactions.FirstOrDefault(
+                t => t.AuthorizationId == authorizationId &&
+                     t.Status == PaymentTransactionStatus.Authorized);
+
+            if (transaction is null)
+                return;
+
+            transaction.MarkVoided();
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void CancelByWorkshop(
+            string? reason,
+            WorkshopActionDecision decision)
+        {
+            if (BookingStatus != BookingStatus.Confirmed)
+                throw new DomainException(
+                    "Only confirmed bookings can be cancelled by the workshop.");
 
             BookingStatus = BookingStatus.Cancelled;
             CancelledAt = DateTime.UtcNow;
             CancellationReason = reason;
+            UpdatedAt = DateTime.UtcNow;
 
-            _fees.Add(BookingFee.Create(Id, BookingFeeType.CancellationPenalty, ConfirmationFeeAmount));
-            if (PaymentType == PaymentType.Online)
+            ApplyWorkshopPenalty(decision);
+
+            var refundAmount = 0m;
+
+            if (PaymentType == PaymentType.Online &&
+                _paymentTransactions.Any(
+                    t => t.Status == PaymentTransactionStatus.Captured))
             {
-                var fullRefund = TotalAmount + ConfirmationFeeAmount;
-                _fees.Add(BookingFee.Create(
-                    Id, BookingFeeType.ClientRefund, fullRefund));
+                refundAmount = TotalAmount ;
             }
 
             AddDomainEvent(new BookingCancelledByWorkshopEvent(
-       Id, ClientId, WorkshopId,
-       TotalAmount + ConfirmationFeeAmount,  
-       PaymentType));
+                Id,
+                ClientId,
+                WorkshopId,
+                refundAmount,
+                PaymentType,
+                decision.PenaltyApplied,
+                decision.PenaltyAmount));
         }
+
+        public void CancelByClient(string? reason = null)
+        {
+            if (BookingStatus is BookingStatus.Completed
+                or BookingStatus.Cancelled
+                or BookingStatus.Rejected
+                or BookingStatus.PaymentFailed
+                or BookingStatus.PendingCapture)
+            {
+                throw new DomainException(
+                    "Cannot cancel this booking in its current state.");
+            }
+            if (JobStatus != JobStatus.New)
+            {
+                throw new DomainException(
+                    "Booking cannot be cancelled after work has started.");
+            }
+            //var authorizedTransaction = _paymentTransactions.FirstOrDefault(
+            //    t => t.Status == PaymentTransactionStatus.Authorized);
+
+            //if (authorizedTransaction is not null)
+            //{
+            //    AddDomainEvent(new BookingAuthorizationVoidRequestedEvent(
+            //        Id,
+            //        authorizedTransaction.AuthorizationId!));
+            //}
+
+            BookingStatus = BookingStatus.Cancelled;
+            CancelledAt = DateTime.UtcNow;
+            CancellationReason = reason;
+            UpdatedAt = DateTime.UtcNow;
+
+            if (PaymentType == PaymentType.Online)
+            {
+                //_fees.FirstOrDefault(
+                //    f => f.FeeType == BookingFeeType.ClientConfirmation)
+                //    ?.MarkRefunded();
+
+                _fees.FirstOrDefault(
+                    f => f.FeeType == BookingFeeType.WorkshopPayout)
+                    ?.Waive();
+
+                _fees.FirstOrDefault(
+                    f => f.FeeType == BookingFeeType.WorkshopCommission)
+                    ?.Waive();
+            }
+
+            AddDomainEvent(new BookingCancelledByClientEvent(
+                Id,
+                ClientId,
+                WorkshopId,
+                ConfirmationFeeAmount));
+        }
+
+
         private static readonly Dictionary<JobStatus, JobStatus> _validTransitions = new()
         {
             [JobStatus.New] = JobStatus.Diagnosing,
@@ -260,26 +595,7 @@ namespace Domain.Entities
             AddDomainEvent(new QuoteCreatedEvent(Id, ClientId, quote.TotalAmount));
             return quote;
         }
-        public void CancelByClient(string? reason = null)
-        {
-            if (BookingStatus is BookingStatus.Completed or BookingStatus.Cancelled)
-                throw new DomainException("Cannot cancel this booking");
-
-
-            BookingStatus = BookingStatus.Cancelled;
-            CancelledAt = DateTime.UtcNow;
-            CancellationReason = reason;
-
-            if ( PaymentType == PaymentType.Online)
-            {
-                _fees.FirstOrDefault(f => f.FeeType == BookingFeeType.ClientConfirmation)?.MarkRefunded();
-                _fees.FirstOrDefault(f => f.FeeType == BookingFeeType.WorkshopPayout)?.Waive();
-                _fees.FirstOrDefault(f => f.FeeType == BookingFeeType.WorkshopCommission)?.Waive();
-            }
-
-            AddDomainEvent(new BookingCancelledByClientEvent(
-                Id, ClientId, WorkshopId, ConfirmationFeeAmount));
-        }
+       
         public void ApproveQuote(int quoteId)
         {
             var quote = _quotes.FirstOrDefault(q => q.Id == quoteId)

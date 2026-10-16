@@ -6,12 +6,15 @@ namespace Application.Features.Client.Workshops.DTOs
     {
         public int Id { get; set; }
         public string Name { get; set; } = default!;
-        public string Address { get; set; } = default!;
+        public string AddressEn { get; set; } = default!;
+        public string AddressAr { get; set; } = default!;
+        public string DescriptionEn { get; set; } = default!;
+        public string DescriptionAr { get; set; }= default!;
         public string Phone { get; set; } = default!;
         public double Lat { get; set; }
         public double Lng { get; set; }
         public double RatingAvg { get; set; }
-        public string? GoogleMapsLink { get; set; }
+        public string? ImageUrl { get; set; }
         public TimeOnly OpeningTime { get; set; }
         public TimeOnly ClosingTime { get; set; }
         public DateTime? StartBusyTime { get;set; }

@@ -27,18 +27,18 @@ namespace WebApi.Controllers.Api.V1
             return HandleGenericResult(result);
         }
         [HttpPost("create-admin")]
-        [Authorize(Roles.SuperAdmin)]
+        [Authorize(Roles = Roles.SuperAdmin)]
         public async Task<IActionResult> CreateAdmin(CreateAdminUserCommand command)
         {
             var result = await Mediator.Send(command);
-            return HandleResult(result);
+            return HandleGenericResult(result);
         }
         [HttpPost("create-employee")]
         [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.Admin}")]
         public async Task<IActionResult> CreateEmployee(CreateEmployeeCommand command)
         {
             var result = await Mediator.Send(command);
-            return HandleResult(result);
+            return HandleGenericResult(result);
         }
         [HttpPost("verify-workshop/{id:int}")]
         [HasPermission(Permissions.Workshops.Verify)]
@@ -71,11 +71,13 @@ namespace WebApi.Controllers.Api.V1
             return HandleGenericResult(result);
         }
         [HttpPost("loyalty/rewards")]
+        [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.Admin}")]
         public async Task<IActionResult> CreateReward(
        CreateRewardCommand command, CancellationToken ct)
        => HandleGenericResult(await Mediator.Send(command, ct));
 
         [HttpPost("loyalty/clients/{clientId:int}/adjust")]
+        [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.Admin}")]
         public async Task<IActionResult> AdjustPoints(
             int clientId,
             [FromBody] ManualAdjustmentCommand command,

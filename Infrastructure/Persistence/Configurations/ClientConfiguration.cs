@@ -14,7 +14,7 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(c => c.PhoneNumber).IsRequired().HasMaxLength(20);
             builder.Property(c => c.Email).HasMaxLength(150);
             builder.HasIndex(c => c.UserId).IsUnique();
-            builder.HasIndex(c => c.PhoneNumber).IsUnique();
+ 
            
         }
     }

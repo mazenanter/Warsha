@@ -19,13 +19,15 @@ namespace Application.Features.Client.Cars.Commands.CorrectOdometer
 
         public async Task<Result> Handle(CorrectOdometerCommand command, CancellationToken ct)
         {
-            var clientId = _currentUser.ClientId!.Value;
-
+            var userId = _currentUser.UserId;
+            var client = await _unitOfWork.Clients.FindAsync(x => x.UserId == userId);
+            if (client is null)
+                return Result.Failure("Client not found");
             var car = await _unitOfWork.Cars.GetByIdWithCorrectionsAsync(command.CarId, ct);
             if (car is null)
                 return Result.Failure("Car not found");
 
-            if (car.ClientId != clientId)
+            if (car.ClientId != client.Id)
                 return Result.Failure("You don't own this car");
 
             car.CorrectOdometer(command.OdometerKm, command.Note);

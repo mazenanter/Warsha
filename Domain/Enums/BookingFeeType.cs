@@ -2,10 +2,10 @@
 {
     public enum BookingFeeType
     {
-        ClientConfirmation,     
-        WorkshopCommission,     
-        WorkshopPayout,         
-        CancellationPenalty,    
-        ClientRefund
+        ClientConfirmation = 1,
+        WorkshopCommission = 2,
+        WorkshopPayout = 3,
+        WorkshopCancellationPenalty = 4,
+        ClientRefund = 5
     }
 }

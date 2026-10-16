@@ -2,9 +2,8 @@
 
 namespace Domain.Entities
 {
-    public class Review
+    public class Review : BaseEntity
     {
-        public int Id { get; private set; } 
         public int WorkshopId { get; private set; }
         public Workshop Workshop { get; private set; } = default!;
 
@@ -13,7 +12,6 @@ namespace Domain.Entities
 
         public int Rating { get; private set; }
         public string? Comment { get; private set; }
-        public DateTime CreatedAt { get; set; }
 
 
         protected Review() { }

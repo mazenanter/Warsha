@@ -12,13 +12,14 @@ namespace Domain.Entities
         public int CarModelId { get; private set; }
         public CarModel CarModel { get; private set; } = default!;
 
-        public string? LicensePlate { get; private set; }
 
         public int ActualOdometerKm { get; private set; }
 
         public decimal GpsAccumulatedKm { get; private set; }
 
         public DateTime? GpsMileageLastUpdatedAt { get; private set; }
+        public bool IsDeleted { get; private set; }
+
 
         private readonly List<OdometerCorrection> _corrections = [];
         public IReadOnlyCollection<OdometerCorrection> Corrections => _corrections;
@@ -29,14 +30,12 @@ namespace Domain.Entities
             int clientId,
             int carModelId,
             int year,
-            string licensePlate,
             int actualOdometerKm = 0)
         {
             if (year < 1990 || year > DateTime.UtcNow.Year + 1)
                 throw new DomainException("Invalid car year");
 
-            if (string.IsNullOrWhiteSpace(licensePlate))
-                throw new DomainException("License plate is required");
+           
 
             if (actualOdometerKm < 0)
                 throw new DomainException("Odometer cannot be negative");
@@ -46,7 +45,6 @@ namespace Domain.Entities
                 ClientId = clientId,
                 CarModelId = carModelId,
                 Year = year,
-                LicensePlate = licensePlate.Trim().ToUpper(),
                 ActualOdometerKm = actualOdometerKm,
 
                 GpsAccumulatedKm = 0
@@ -55,15 +53,14 @@ namespace Domain.Entities
 
         public void UpdateCar(
             int carModelId,
-            int year,
-            string? licensePlate)
+            int year
+            )
         {
             if (year < 1990 || year > DateTime.UtcNow.Year + 1)
                 throw new DomainException("Invalid car year");
 
             CarModelId = carModelId;
             Year = year;
-            LicensePlate = licensePlate;
 
             UpdatedAt = DateTime.UtcNow;
         }
@@ -78,7 +75,14 @@ namespace Domain.Entities
             GpsMileageLastUpdatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
         }
+        public void Delete()
+        {
+            if (IsDeleted)
+                return;
 
+            IsDeleted = true;
+            UpdatedAt = DateTime.UtcNow;
+        }
         public OdometerCorrection CorrectOdometer(
      int newOdometerKm,
      string? note)
@@ -86,9 +90,7 @@ namespace Domain.Entities
             if (newOdometerKm < 0)
                 throw new DomainException("Odometer cannot be negative");
 
-            if (newOdometerKm < ActualOdometerKm)
-                throw new DomainException(
-                    $"New odometer ({newOdometerKm} km) cannot be less than current ({ActualOdometerKm} km)");
+        
 
             var correction = OdometerCorrection.Create(
                 Id,

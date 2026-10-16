@@ -34,7 +34,7 @@ namespace Application.Features.Client.Cars.Commands.UpdateCar
                     "You already have a car with the same model and year."
                 );
             }
-            car.UpdateCar(request.CarModel, request.Year,null);
+            car.UpdateCar(request.CarModel, request.Year);
             await _unitOfWork.Cars.UpdateAsync(car);
             await _unitOfWork.SaveChangesAsync();
             return Result.Success("Car updated successfully.");

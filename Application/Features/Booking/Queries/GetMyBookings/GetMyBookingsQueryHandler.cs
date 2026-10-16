@@ -20,9 +20,15 @@ namespace Application.Features.Booking.Queries.GetMyBookings
         public async Task<Result<IEnumerable<BookingListDto>>> Handle(
             GetMyBookingsQuery request, CancellationToken ct)
         {
-            var clientId = _currentUser.ClientId!.Value;
+           
+            var userId = _currentUser.UserId;
+            var client = await _unitOfWork.Clients.FindAsync(x=>x.UserId == userId);
+            if(client == null)
+            {
+                return Result<IEnumerable<BookingListDto>>.Failure("Client not found");
+            }
             var bookings = await _unitOfWork.Bookings
-                .GetClientBookingsAsync(clientId, request.Status, request.Page, request.PageSize, ct);
+                .GetClientBookingsAsync(client.Id, request.Status, request.Page, request.PageSize, ct);
 
             var result = bookings.Select(b => new BookingListDto(
                 b.Id, b.BookingNumber, b.Workshop.Name,

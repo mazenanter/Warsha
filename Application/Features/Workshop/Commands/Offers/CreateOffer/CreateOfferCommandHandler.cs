@@ -1,12 +1,14 @@
-﻿using Application.Interfaces;
+﻿using Application.Features.Workshop.DTOs;
+using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Domain.Common;
+using Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Workshop.Commands.Offers.CreateOffer
 {
-    public class CreateOfferCommandHandler : IRequestHandler<CreateOfferCommand, Result>
+    public class CreateOfferCommandHandler : IRequestHandler<CreateOfferCommand, Result<OfferCreatedResponseDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreateOfferCommandHandler> _logger;
@@ -21,28 +23,32 @@ namespace Application.Features.Workshop.Commands.Offers.CreateOffer
             _workshopRepository = workshopRepository;
         }
 
-        public async Task<Result> Handle(CreateOfferCommand request, CancellationToken cancellationToken)
+        public async Task<Result<OfferCreatedResponseDto>> Handle(CreateOfferCommand request, CancellationToken cancellationToken)
         {
-            var userId = _currentUserService.UserId; 
-            var workshop = await _workshopRepository.GetByUserId(userId);
-            if(workshop == null)
+            var userId = _currentUserService.UserId;
+            var workshop = await _unitOfWork.Workshops
+    .GetByUserIdWithServicesAsync(
+        userId,
+        cancellationToken);
+            if (workshop == null)
             {
                 _logger.LogWarning("Workshop not found");
-                return Result.Failure("Workshop not found");
+                return Result<OfferCreatedResponseDto>.Failure("Workshop not found");
             }
+            Offer offer;
             if (request.serviceId.HasValue)
             {
-                workshop.AddServiceOffer(request.serviceId.Value, request.discountPercentage, request.startAt, request.endAt);
+                offer= workshop.AddServiceOffer(request.serviceId.Value, request.discountPercentage, request.startAt, request.endAt);
             }else
             {
-                workshop.AddWorkshopOffer(request.discountPercentage, request.startAt, request.endAt);
+                 offer= workshop.AddWorkshopOffer(request.discountPercentage, request.startAt, request.endAt);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             _logger.LogInformation(
            "Offer created successfully for workshop {WorkshopId}",
            workshop.Id);
-            return Result.Success("Offer created successfully.");
+            return Result<OfferCreatedResponseDto>.Success(new OfferCreatedResponseDto { Id = offer.Id },"Offer created successfully.");
         }
     }
 }

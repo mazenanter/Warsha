@@ -6,13 +6,11 @@ namespace Application.Interfaces
 {
     public interface IUnitOfWork
     {
-<<<<<<< HEAD
-        public IRepository<Client> Clients { get;}
+
         public IRepository<SavedWorkshop> SavedWorkshops { get; }
         public IRepository<Reminder> Reminders { get; }
-=======
+        public IRepository<Offer> Offers { get; }
 
->>>>>>> 0655ffdda47d49dc08b77c6b24db6022cedadc7f
         public IRepository<Review> Reviews { get;}
         public IWorkshopRepository Workshops { get;}
         public ICarRepository Cars { get;}
@@ -40,8 +38,9 @@ namespace Application.Interfaces
         public IRepository<SubscriptionPlan> SubscriptionPlans { get;}
         public IRepository<WorkshopSubscription> WorkshopSubscriptions { get;}
         public IRepository<BookingService> BookingItems { get;}
-        public IRepository<Specialization> Specializations { get;}
         public IPermissionRepository Permissions { get; }
+        public IWorkshopMonthlyActionLimitRepository WorkshopMonthlyActionLimits { get; }
+        public IWorkshopMonthlyActionRepository WorkshopMonthlyActions { get; }
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
     }

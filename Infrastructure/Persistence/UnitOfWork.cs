@@ -20,7 +20,6 @@ namespace Infrastructure.Persistence
 
             WorkshopServices = new Repository<WorkshopService>(_context);
             ServiceCategories = new Repository<ServiceCategory>(_context);
-            Specializations = new Repository<Specialization>(_context);
             Workshops = new WorkshopRepository(_context);
             Permissions = new PermissionRepository(_context);
             LoyaltyPointRules = new LoyaltyPointRuleRepository(_context);
@@ -45,6 +44,10 @@ namespace Infrastructure.Persistence
             DeviceTokens = new DeviceTokenRepository(_context);
             Notifications = new NotificationRepository(_context);
             Trips = new TripRepository(_context);
+            Offers = new Repository<Offer>(_context);
+
+            WorkshopMonthlyActionLimits = new WorkshopMonthlyActionLimitRepository(_context);
+            WorkshopMonthlyActions = new WorkshopMonthlyActionRepository(_context);
         }
 
         public IRepository<Review> Reviews { get; }
@@ -52,10 +55,10 @@ namespace Infrastructure.Persistence
         public IRepository<WorkshopService> WorkshopServices { get; }
         public IRepository<Reminder> Reminders { get; }
         public IRepository<ServiceCategory> ServiceCategories { get; }
-        public IRepository<Specialization> Specializations { get; }
         public IRepository<SavedWorkshop> SavedWorkshops {get;}
         public IRepository<CarModel> CarModels { get; }
         public IRepository<CarBrand> CarBrands { get; }
+        public IRepository<Offer> Offers { get; }
         public IRepository<BookingService> BookingItems { get; }
         public IRepository<BookingFee> BookingFees { get; }
         public ILoyaltyWalletRepository LoyaltyWallets { get; }
@@ -79,8 +82,8 @@ namespace Infrastructure.Persistence
         public IWorkshopRepository Workshops { get; }
         public ICarRepository Cars { get; }
         public IPermissionRepository Permissions { get; }
-
-        IRepository<Client> IUnitOfWork.Clients => Clients;
+        public IWorkshopMonthlyActionLimitRepository WorkshopMonthlyActionLimits { get; }
+        public IWorkshopMonthlyActionRepository WorkshopMonthlyActions { get; }
 
         public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
         {

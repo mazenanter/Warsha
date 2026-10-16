@@ -7,7 +7,7 @@ namespace Infrastructure.Persistence.Seeding
     {
         public static async Task SeedAsync(RoleManager<IdentityRole<int>> roleManager)
         {
-            var roles = new[] { Roles.SuperAdmin, Roles.Admin, Roles.Client, Roles.Workshop };
+            var roles = new[] { Roles.SuperAdmin, Roles.Admin, Roles.Client, Roles.Workshop,Roles.Employee };
 
             foreach (var role in roles)
             {

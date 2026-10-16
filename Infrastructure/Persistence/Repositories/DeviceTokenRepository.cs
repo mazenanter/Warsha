@@ -14,10 +14,17 @@ namespace Infrastructure.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<DeviceToken?> GetByUserIdAsync(
-        int userId, CancellationToken ct = default)
-        => await _context.DeviceTokens
-            .FirstOrDefaultAsync(dt => dt.UserId == userId, ct);
+        public async Task<DeviceToken?> GetByUserAndDeviceAsync(
+     int userId,
+     string deviceId,
+     CancellationToken ct = default)
+        {
+            return await _context.DeviceTokens
+                .FirstOrDefaultAsync(
+                    dt => dt.UserId == userId &&
+                          dt.DeviceId == deviceId,
+                    ct);
+        }
 
         public async Task<IEnumerable<string>> GetTokensByUserIdAsync(
             int userId, CancellationToken ct = default)

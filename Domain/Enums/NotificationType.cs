@@ -10,6 +10,8 @@
         QuoteReceived,
         QuoteResponded,
         WorkshopNewBooking,
-        General
+        General,
+        BookingAccepted,
+        BookingRejected
     }
 }

@@ -23,7 +23,11 @@ namespace Application.Features.Auth.Commands.WorkshopRegister
                 .Matches(@"^01[0125][0-9]{8}$")
                 .WithMessage("Invalid Egyptian phone number.");
 
-            RuleFor(x => x.Address)
+            RuleFor(x => x.AddressEn)
+                .NotEmpty().WithMessage("Address is required.")
+                .MaximumLength(250);
+
+            RuleFor(x => x.AddressAr)
                 .NotEmpty().WithMessage("Address is required.")
                 .MaximumLength(250);
 

@@ -9,6 +9,15 @@
 
         Task<RefundResult> RefundAsync(
             string transactionId, decimal amountInEgp, CancellationToken ct = default);
+        Task<GatewayOperationResult> CaptureAsync(
+     string transactionId,
+     decimal amountInEgp,
+     CancellationToken ct = default);
+        Task<GatewayOperationResult> VoidAsync(
+    string transactionId,
+    CancellationToken ct = default);
+
+      
     }
     public record CreatePaymentRequest(
     string BookingNumber,
@@ -25,4 +34,7 @@
         string? ErrorMessage);
 
     public record RefundResult(bool IsSuccess, string? ErrorMessage);
+    public record GatewayOperationResult(
+    bool IsSuccess,
+    string? ErrorMessage);
 }
