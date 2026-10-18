@@ -12,6 +12,7 @@ namespace Domain.Entities
         public string Email { get; private set; } = default!;
         public string ReferralCode { get; private set; } = default!; 
         public string? ReferredByCode { get; private set; }
+        public bool IsActive { get; private set; } = true;
         private readonly List<Car> _cars = [];
         public IReadOnlyCollection<Car> Cars => _cars;
 

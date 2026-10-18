@@ -1,6 +1,7 @@
 ﻿using Application.Features.Admin.Commands.CreateAdminUser;
 using Application.Features.Admin.Commands.CreateEmployee;
 using Application.Features.Admin.Queries.GetAllPermissions;
+using Application.Features.Admin.Queries.GetClients;
 using Application.Features.Admin.Queries.GetUserPermissions;
 using Application.Features.Auth.Commands.AdminLogin;
 using Application.Features.Loyalty.Commands.CreateReward;
@@ -84,5 +85,13 @@ namespace WebApi.Controllers.Api.V1
             CancellationToken ct)
             => HandleResult(await Mediator.Send(
                 command with { ClientId = clientId }, ct));
+
+        [HttpGet("clients")]
+        [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.Admin}")]
+        public async Task<IActionResult> GetClients([FromQuery] GetClientsQuery query)
+        {
+            var result = await Mediator.Send(query);
+            return HandleGenericResult(result);
+        }
     }
 }

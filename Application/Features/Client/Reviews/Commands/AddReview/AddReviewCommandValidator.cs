@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 using FluentValidation;
-=======
-﻿using FluentValidation;
->>>>>>> 8849e011a858a3a8c7b288408309aeada6ba21b8
 
 namespace Application.Features.Client.Reviews.Commands.AddReview
 {
@@ -15,8 +11,5 @@ namespace Application.Features.Client.Reviews.Commands.AddReview
             RuleFor(x => x.Comment).MaximumLength(1000);
         }
     }
-<<<<<<< HEAD
+
 }
-=======
-}
->>>>>>> 8849e011a858a3a8c7b288408309aeada6ba21b8

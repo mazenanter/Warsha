@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 using Application.Interfaces;
-=======
-﻿using Application.Interfaces;
->>>>>>> 8849e011a858a3a8c7b288408309aeada6ba21b8
 using Domain.Common;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -45,8 +41,4 @@ namespace Application.Features.Client.Profile.Commands.UpdateProfile
             return Result.Success("Profile updated successfully");
         }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8849e011a858a3a8c7b288408309aeada6ba21b8

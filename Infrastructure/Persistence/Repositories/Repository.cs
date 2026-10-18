@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Repositories;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -11,6 +12,11 @@ namespace Infrastructure.Persistence.Repositories
         public Repository(AppDbContext dbContext)
         {
             this._context = dbContext;
+        }
+        public async Task<Client?> GetByReferralCodeAsync(string referralCode, CancellationToken ct = default)
+        {
+            return await _context.Set<Client>()
+                .FirstOrDefaultAsync(c => c.ReferralCode == referralCode, ct);
         }
         public async Task<T> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {

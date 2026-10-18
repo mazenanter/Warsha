@@ -1,13 +1,9 @@
-<<<<<<< HEAD
 using FluentValidation;
-=======
-﻿using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
->>>>>>> 8849e011a858a3a8c7b288408309aeada6ba21b8
 
 namespace Application.Features.Client.Profile.Commands.UpdateProfile
 {
@@ -26,8 +22,4 @@ namespace Application.Features.Client.Profile.Commands.UpdateProfile
             // so registration and profile updates accept the same numbers.
         }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8849e011a858a3a8c7b288408309aeada6ba21b8
