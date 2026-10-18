@@ -20,6 +20,8 @@ namespace Application.Features.Client.Workshops.DTOs
         public DateTime? StartBusyTime { get;set; }
         public DateTime? BusyUntil { get;set; } 
         public bool BusyStatus {get; set;}
+        public decimal? MaxDiscountPercentage { get; set; }   // null = no active offers
+        public List<WorkshopOfferResponseDto> Offers { get; set; } = new();
 
         public List<WorkshopServiceResponseDto> Services { get; set; } = new();
         public PagedResult<ReviewResponseDto> Reviews { get; set; } = default!;

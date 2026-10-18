@@ -11,5 +11,8 @@ namespace Application.Features.Client.Workshops.DTOs
         public decimal MinPrice { get; set; }
         public decimal MaxPrice { get; set; }
         public bool IsActive { get; set; }
+        public decimal? DiscountPercentage { get; set; }
+        public decimal? DiscountedMinPrice { get; set; }
+        public decimal? DiscountedMaxPrice { get; set; }
     }
 }
