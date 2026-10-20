@@ -26,6 +26,8 @@ using Application.Features.Workshop.Commands.Specializations.RemoveSpecializatio
 using Application.Features.Workshop.Commands.UpdateProfile;
 using Application.Features.Workshop.Commands.UpdateSettings;
 using Application.Features.Workshop.Commands.UpdateWorkshopImage;
+using Application.Features.Workshop.Queries.GetDashboardRevenue;
+using Application.Features.Workshop.Queries.GetDashboardStats;
 using Application.Features.Workshop.Queries.Offers.GetMyOffers;
 using Application.Features.Workshop.Queries.Profile;
 using Application.Features.Workshop.Queries.ServiceCategory.GetAll;
@@ -272,5 +274,21 @@ namespace WebApi.Controllers.Api.V1
         public async Task<IActionResult> RejectBooking(
             int id, [FromBody] string? reason, CancellationToken ct)
             => HandleResult(await Mediator.Send(new RejectBookingCommand(id, reason), ct));
+
+        [HttpGet("dashboard/stats")]
+        [Authorize(Roles = Roles.Workshop)]
+        public async Task<IActionResult> GetDashboardStats()
+        {
+            var result = await Mediator.Send(new GetDashboardStatsQuery());
+            return HandleGenericResult(result);
+        }
+
+        [HttpGet("dashboard/revenue")]
+        [Authorize(Roles = Roles.Workshop)]
+        public async Task<IActionResult> GetDashboardRevenue([FromQuery] GetDashboardRevenueQuery query)
+        {
+            var result = await Mediator.Send(query);
+            return HandleGenericResult(result);
+        }
     }
 }
