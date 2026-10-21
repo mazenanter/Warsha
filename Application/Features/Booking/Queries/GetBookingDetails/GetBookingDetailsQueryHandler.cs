@@ -3,11 +3,13 @@ using Application.Interfaces;
 using Domain.Common;
 using Domain.Enums;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using BookingEntity = Domain.Entities.Booking;
 
 namespace Application.Features.Booking.Queries.GetBookingDetails
 {
     public class GetBookingDetailsQueryHandler
-    : IRequestHandler<GetBookingDetailsQuery, Result<BookingDetailsDto>>
+        : IRequestHandler<GetBookingDetailsQuery, Result<BookingDetailsDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUser;
@@ -22,12 +24,33 @@ namespace Application.Features.Booking.Queries.GetBookingDetails
             GetBookingDetailsQuery request, CancellationToken ct)
         {
             var booking = await _unitOfWork.Bookings.GetByIdWithDetailsAsync(request.BookingId, ct);
-            if (booking is null) return Result<BookingDetailsDto>.Failure("Booking not found");
 
             var clientId = _currentUser.ClientId;
             var workshopId = _currentUser.WorkshopId;
-            if (clientId.HasValue && booking.ClientId != clientId.Value) return Result<BookingDetailsDto>.Failure("Unauthorized");
-            if (workshopId.HasValue && booking.WorkshopId != workshopId.Value) return Result<BookingDetailsDto>.Failure("Unauthorized");
+
+            // Missing booking and someone else's booking get the same answer, so ids can't be probed
+            if (booking is null || !IsOwner(booking, clientId, workshopId))
+                return Result<BookingDetailsDto>.Failure("Booking not found");
+
+            var isWorkshopOwner = workshopId.HasValue && booking.WorkshopId == workshopId.Value;
+
+            // Separate small query: I haven't seen what GetByIdWithDetailsAsync includes
+            BookingCustomerDto? customer = null;
+            if (isWorkshopOwner)
+            {
+                customer = await _unitOfWork.Clients.GetAll()
+                    .AsNoTracking()
+                    .Where(c => c.Id == booking.ClientId)
+                    .Select(c => new BookingCustomerDto(c.Name, c.PhoneNumber))
+                    .FirstOrDefaultAsync(ct);
+            }
+
+            // Jobs move strictly one step at a time, so the next valid step is the next number
+            int? nextJobStatus = isWorkshopOwner
+                && booking.BookingStatus == BookingStatus.Confirmed
+                && booking.JobStatus != JobStatus.Completed
+                    ? (int)booking.JobStatus + 1
+                    : null;
 
             var pendingQuote = booking.Quotes.FirstOrDefault(q => q.Status == QuoteStatus.Pending);
 
@@ -43,9 +66,15 @@ namespace Application.Features.Booking.Queries.GetBookingDetails
                 booking.Items.Select(i => new BookingServiceDto(i.ServiceName, i.Price)).ToList(),
                 pendingQuote == null ? null : new PendingQuoteDto(
                     pendingQuote.Id, pendingQuote.TotalAmount, pendingQuote.WorkshopNote,
-                    pendingQuote.Items.Select(i => new QuoteItemDto(i.Description, i.Price)).ToList()));
+                    pendingQuote.Items.Select(i => new QuoteItemDto(i.Description, i.Price)).ToList()),
+                customer,
+                nextJobStatus);
 
             return Result<BookingDetailsDto>.Success(dto, "Booking details retrieved successfully");
         }
+
+        private static bool IsOwner(BookingEntity booking, int? clientId, int? workshopId)
+            => (workshopId.HasValue && booking.WorkshopId == workshopId.Value)
+            || (clientId.HasValue && booking.ClientId == clientId.Value);
     }
 }

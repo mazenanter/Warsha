@@ -20,5 +20,9 @@
     DateTime? ConfirmedAt,
     DateTime? CompletedAt,
     List<BookingServiceDto> Services,
-    PendingQuoteDto? PendingQuote);
+    PendingQuoteDto? PendingQuote,
+    BookingCustomerDto? Customer = null,
+    int? NextJobStatus = null);
+
+public record BookingCustomerDto(string Name, string Phone);
 }

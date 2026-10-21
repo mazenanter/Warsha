@@ -56,5 +56,14 @@ namespace Domain.Entities
             Status = QuoteStatus.Declined;
             UpdatedAt = DateTime.UtcNow;
         }
+
+        public void Withdraw()
+        {
+            if (Status != QuoteStatus.Pending)
+                throw new DomainException("Only pending quotes can be withdrawn");
+
+            Status = QuoteStatus.Withdrawn;
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

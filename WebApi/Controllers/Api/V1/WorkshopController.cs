@@ -17,6 +17,7 @@ using Application.Features.Workshop.Commands.Admin.Unverify;
 using Application.Features.Workshop.Commands.Admin.Verify;
 using Application.Features.Workshop.Commands.Offers.CreateOffer;
 using Application.Features.Workshop.Commands.Offers.DeleteOffer;
+using Application.Features.Workshop.Commands.Quotes.WithdrawQuote;
 using Application.Features.Workshop.Commands.Services.AddWorkshopService;
 using Application.Features.Workshop.Commands.Services.DeleteWorkshopService;
 using Application.Features.Workshop.Commands.Services.ToggleServiceVisibility;
@@ -290,5 +291,10 @@ namespace WebApi.Controllers.Api.V1
             var result = await Mediator.Send(query);
             return HandleGenericResult(result);
         }
+
+         [HttpDelete("quotes/{id:int}")]
+        [Authorize(Roles = Roles.Workshop)]
+        public async Task<IActionResult> WithdrawQuote(int id, CancellationToken ct)
+            => HandleResult(await Mediator.Send(new WithdrawQuoteCommand(id), ct));
     }
 }
